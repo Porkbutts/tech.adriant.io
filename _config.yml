@@ -1,18 +1,18 @@
-github: [metadata]
-encoding: UTF-8
-kramdown:
-  input: GFM
-  hard_wrap: false
-future: true
-jailed: false
-theme: jekyll-theme-modernist
-gfm_quirks: paragraph_end
+environment: production
 
+theme: jekyll-theme-modernist
 url: "https://subtlepurpose.com"
+
+title: [The title of your site]
+description: [A short description of your site's purpose]
+show_downloads: false
+
+google_analytics: UA-117405938-2
+google_adsense: ca-pub-3521905629903035
+
 plugins:
 - jekyll-sitemap
 
-exclude: ["README.md"]
+exclude: [CNAME, README.md, .gitignore, Gemfile, Gemfile.lock]
 
-permalink: /blog/:year/:month/:day/:title
-
+permalink: pretty
