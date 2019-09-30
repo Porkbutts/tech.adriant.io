@@ -1,0 +1,8 @@
+---
+layout: default
+---
+<p>{{ page.date }} - Written by {{ page.author }}</p>
+
+{{ content }}
+
+{% if site.environment == "production" and page.comments %}{% include disqus.html %}{% endif %}
