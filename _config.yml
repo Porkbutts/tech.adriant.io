@@ -3,10 +3,14 @@ environment: production
 theme: jekyll-theme-modernist
 url: "https://subtlepurpose.com"
 
+author:
+  name: Adrian Teng-Amnuay
+  email: pumpadrian@gmail.com
+
 title: [The title of your site]
 description: [A short description of your site's purpose]
-show_downloads: false
 
+show_downloads: false
 google_analytics: UA-117405938-2
 google_adsense: ca-pub-3521905629903035
 
