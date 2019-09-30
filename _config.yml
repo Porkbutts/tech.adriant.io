@@ -17,6 +17,6 @@ google_adsense: ca-pub-3521905629903035
 plugins:
 - jekyll-sitemap
 
-exclude: [CNAME, README.md, .gitignore, Gemfile, Gemfile.lock]
+exclude: [CNAME, README.md, .gitignore, Gemfile, Gemfile.lock, bin]
 
 permalink: pretty
