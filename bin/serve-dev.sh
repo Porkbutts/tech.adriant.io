@@ -1,3 +1,3 @@
 #!/bin/bash
 
-bundle exec jekyll s --config _config.yml,_config_dev.yml --livereload
+bundle exec jekyll s --config _config.yml,_config_dev.yml --livereload --drafts

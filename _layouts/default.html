@@ -25,7 +25,8 @@
   <body>
     <div class="wrapper">
       <header {% unless site.description or site.github.project_tagline %} class="without-description" {% endunless %}>
-        <h1>{{ site.title | default: site.github.repository_name }}</h1>
+        <h1><a href="{{ site.url }}">{{ site.title | default: site.github.repository_name }}</a></h1>
+
         {% if site.description or site.github.project_tagline %}
           <p>{{ site.description | default: site.github.project_tagline }}</p>
         {% endif %}
@@ -37,7 +38,7 @@
       </section>
     </div>
     <footer>
-      <p>Copyright {{ site.time | date: '%Y' }} <a href="/" class="black">Adrian Teng-Amnuay</a></p>
+      <p>Copyright {{ site.time | date: '%Y' }} <a href="{{ site.url }}" class="black">Adrian Teng-Amnuay</a></p>
       <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
     </footer>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->

@@ -1,14 +1,15 @@
 ---
 layout: default
+comments: true
 excerpt_separator: <!--more-->
 ---
 <div class="post">
   <h1 class="post-title">{{ page.title }}</h1>
-  <span class="post-date">{{ page.date | date_to_string }}</span>
+  <span class="post-date">{{ page.date | date_to_long_string }}</span>
   {% include display_tags_and_categories.html %}
   {{ content | replace: '<!--more-->', '<a class="anchor" id="read-more"></a>' }}
 </div>
 
 {% include related_posts.html %}
 
-{% if site.environment == "production" and page.comments %}{% include disqus.html %}{% endif %}
+{% if site.environment == "production" and layout.comments %}{% include disqus.html %}{% endif %}
