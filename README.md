@@ -1,6 +1,6 @@
-# subtlepurpose.com
+# Jekyll Base
 
-A DevOps website.
+Base template for personal Jekyll websites
 
 
 ## Adding new gems
@@ -10,10 +10,14 @@ $ bundle add <gem>
 
 ## Run locally
 ```
+# Development
 $ ./bin/serve-dev.sh
+
+# Production
+$ ./bin/serve-prod.sh
 ```
 
-## Make tags up to date
+## Collect tags from posts and create the layouts
 ```
 $ ./bin/update_tags.rb
 ```
