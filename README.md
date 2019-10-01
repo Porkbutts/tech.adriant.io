@@ -1,7 +1,6 @@
-# Jekyll Base
+# subtlepurpose.com
 
-Base template for personal Jekyll websites
-
+Jekyll blog hosted on Github-pages.
 
 ## Adding new gems
 ```
