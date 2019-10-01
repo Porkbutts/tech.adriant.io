@@ -2,9 +2,24 @@
 
 A DevOps website.
 
-## Gotchas
 
-Run local
+## Adding new gems
 ```
-bundle exec jekyll s --config _config.yml,_config_dev.yml
+$ bundle add <gem>
 ```
+
+## Run locally
+```
+$ ./bin/serve-dev.sh
+```
+
+## Make tags up to date
+```
+$ ./bin/update_tags.rb
+```
+
+## Useful Reading
+- [Jekyll permalinks](https://jekyllrb.com/docs/permalinks/)
+- [Jekyll github-pages](https://jekyllrb.com/docs/github-pages/)
+- [Jekyll site variables](https://jekyllrb.com/docs/variables/)
+- [Jekyll blogging](https://jekyllrb.com/docs/step-by-step/08-blogging/)

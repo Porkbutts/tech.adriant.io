@@ -1,8 +1,14 @@
 ---
 layout: default
+excerpt_separator: <!--more-->
 ---
-<p>{{ page.date }} - Written by {{ page.author }}</p>
+<div class="post">
+  <h1 class="post-title">{{ page.title }}</h1>
+  <span class="post-date">{{ page.date | date_to_string }}</span>
+  {% include display_tags_and_categories.html %}
+  {{ content | replace: '<!--more-->', '<a class="anchor" id="read-more"></a>' }}
+</div>
 
-{{ content }}
+{% include related_posts.html %}
 
 {% if site.environment == "production" and page.comments %}{% include disqus.html %}{% endif %}

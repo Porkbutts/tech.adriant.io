@@ -1,8 +1,10 @@
 ---
 layout: post
 title: First Post
-date: 2019-09-29
 comments: true
+
+categories: programming
+tags: jekyll aws
 ---
 
 The first post.

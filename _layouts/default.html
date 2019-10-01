@@ -11,6 +11,9 @@
   {% if site.google_adsense %}{% include google_adsense.html %}{% endif %}
 {% endif %}
 
+{% if site.tags != "" %}
+  {% include collect_tags.html %}
+{% endif %}
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
     <script src="{{ '/assets/js/scale.fix.js' | relative_url }}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
