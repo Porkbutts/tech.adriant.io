@@ -1,50 +1,36 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="{{ site.lang | default: "en-US" }}">
   <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
 {% seo %}
 
-{% if site.environment == "production" %}
-  {% if site.google_analytics %}{% include google_analytics.html %}{% endif %}
-  {% if site.google_adsense %}{% include google_adsense.html %}{% endif %}
-{% endif %}
+    <link rel="stylesheet" href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      {% if site.title and site.title != page.title %}
+      <h1><a href="{{ "/" | absolute_url }}">{{ site.title }}</a></h1>
+      {% endif %}
+
+      {{ content }}
+
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        <!-- <p>Copyright {{ site.time | date: '%Y' }} <a href="{{ "/" | absolute_url }}">Adrian Teng-Amnuay</a></p> -->
+      </div>
+
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    {% if site.environment == "production" %}
+      {% if site.google_analytics %}{% include google_analytics.html %}{% endif %}
+      {% if site.google_adsense %}{% include google_adsense.html %}{% endif %}
+    {% endif %}
+  </body>
+</html>
 
 {% if site.tags != "" %}
   {% include collect_tags.html %}
 {% endif %}
-    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
-    <script src="{{ '/assets/js/scale.fix.js' | relative_url }}"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-  </head>
-  <body>
-    <div class="wrapper">
-      <header {% unless site.description or site.github.project_tagline %} class="without-description" {% endunless %}>
-        <h1><a href="{{ site.url }}">{{ site.title | default: site.github.repository_name }}</a></h1>
-
-        {% if site.description or site.github.project_tagline %}
-          <p>{{ site.description | default: site.github.project_tagline }}</p>
-        {% endif %}
-
-        <ul>
-          <li><a href="{{ site.url }}/blog">View <strong>Blog</strong></a></li>
-        </ul>
-      </header>
-      <section>
-
-      {{ content }}
-
-      </section>
-    </div>
-    <footer>
-      <p>Copyright {{ site.time | date: '%Y' }} <a href="{{ site.url }}" class="black">Adrian Teng-Amnuay</a></p>
-      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
-    </footer>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-  </body>
-</html>

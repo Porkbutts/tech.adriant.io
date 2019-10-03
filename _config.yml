@@ -1,6 +1,6 @@
 environment: production
 
-theme: jekyll-theme-modernist
+theme: jekyll-theme-primer
 url: "https://subtlepurpose.com"
 
 author:
@@ -17,9 +17,9 @@ plugins:
 - jekyll-sitemap
 - jekyll-paginate
 
-exclude: [CNAME, README.md, .gitignore, Gemfile, Gemfile.lock, bin]
+exclude: [CNAME, README.md, .gitignore, Gemfile, Gemfile.lock, script]
 
-permalink: /blog/:categories/:year/:month/:day/:title:output_ext
+permalink: pretty
 
-paginate: 3
-paginate_path: /blog/page:num/
+paginate: 2
+paginate_path: /page:num/
