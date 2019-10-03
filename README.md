@@ -1,6 +1,29 @@
 # subtlepurpose.com
 
-Jekyll blog hosted on Github-pages.
+**subtlepurpose** is my personal DevOps blog built using Jekyll and hosted on Github-pages.
+
+## Installation
+- You must have **ruby** installed. **rvm** or some kind of Ruby version manager is recommended.
+- You must have **bundler2**. You can install with
+```
+$ gem install bundler
+```
+- Install the gems from Gemfile using `bundle` command.
+
+## Run locally
+```
+# Run dev environment with drafts, livereload and without analytics, comments, ads
+$ script/serve-dev
+
+# Run a production build
+$ script/serve-prod
+```
+
+## Collect tags from posts and create the layouts
+This script scans posts for tags and then creates a tag HTML file for each.
+```
+$ script/update_tags
+```
 
 ## Drafting Posts
 Add to `_drafts` with the file name format `YYYY-mm-dd-name-of-post.md`
@@ -21,24 +44,14 @@ Hello I'm here to talk about s3.
 <Users only see this content when they click into the blog post>.
 ```
 
+When the post is ready to be published, move it to `_posts`.
+
 ## Adding new gems
 ```
 $ bundle add <gem>
 ```
 
-## Run locally
-```
-# Development
-$ ./bin/serve-dev.sh
-
-# Production
-$ ./bin/serve-prod.sh
-```
-
-## Collect tags from posts and create the layouts
-```
-$ ./bin/update_tags.rb
-```
+If it is a jekyll plugin, you may need to add it to the `plugins` section in `_config.yml`
 
 ## Useful Reading
 - [Jekyll permalinks](https://jekyllrb.com/docs/permalinks/)
