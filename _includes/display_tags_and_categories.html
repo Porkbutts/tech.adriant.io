@@ -13,6 +13,8 @@
       {% assign badge_type = "badge-warning" %}
     {% elsif category == "kubernetes" %}
       {% assign badge_type = "badge-primary" %}
+    {% elsif category == "terraform" %}
+      {% assign badge_type = "badge-danger" %}
     {% else %}
       {% assign badge_type = "badge-secondary" %}
     {% endif %}
