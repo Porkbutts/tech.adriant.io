@@ -10,7 +10,7 @@ title: Home
     <span class="post-date">{{ post.date | date_to_long_string }}</span>
     {% include display_tags_and_categories.html %}
     {{ post.excerpt }}
-    <p><a class="btn btn-sm btn-primary" href="{{ post.url }}#read-more" role="button">Read more <i class="fa fa-angle-double-right"></i></a></p>
+    <p><a href="{{ post.url }}#read-more" role="button">Read more <i class="fa fa-angle-double-right"></i></a></p>
   </div>
   {% endfor %}
 </div>
