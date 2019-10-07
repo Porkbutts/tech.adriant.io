@@ -1,29 +1,41 @@
-#!/usr/bin/ruby
+#!/usr/bin/python
 
-require 'fileutils'
+import os
+import glob
 
-Dir.mkdir('tag') unless File.directory?('tag')
-Dir.foreach "_posts" do |item|
-  next if item == "." or item == ".." or File.directory? item
-  File.open "_posts/#{item}" do |file|
-    str = file.find { |line| line =~ /tags:/ }
-    tags = str.gsub(/\s+/m, " ").strip.split(" ")[1..-1]
-    tags.each do |tag|
-      fname = "tag/#{tag}.html"
-      if not File.file? fname
-        contents = [
-          "---",
-          "layout: tag",
-          "title: \"Tag: #{tag}\"",
-          "tag: #{tag}",
-          "---"
-        ]
-        File.write(fname, contents.join("\n"))
-        puts "Created #{fname}"
-      else
-        puts "#{fname} up-to-date"
-      end
-    end
-  end
-end
+POSTS_DIR = './_posts'
+TAGS_DIR = './tag'
 
+def clean_tag_files():
+  for f in glob.glob('{0}/*.html'.format(TAGS_DIR)):
+    os.remove(f)
+
+def create_tag_file(tag):
+  if not tag:
+    return
+
+  filename = os.path.join(TAGS_DIR, '{0}.html'.format(tag))
+  if os.path.exists(filename):
+    return
+
+  contents = '---\nlayout: tag\ntitle: "Tag: {0}"\ntag: {0}\n---\n'.format(tag)
+  with open(filename, 'w') as f:
+    f.write(contents)
+
+
+if __name__ == '__main__':
+  clean_tag_files()
+
+  for filename in os.listdir(POSTS_DIR):
+
+    if filename.startswith('.'):
+      continue
+
+    with open(os.path.join(POSTS_DIR, filename)) as f:
+      for line in f.readlines():
+        if line.startswith('tags:'):
+          raw_tags = line.split('tags:')[1].strip()
+          tags = raw_tags.split(' ')
+          for tag in tags:
+            create_tag_file(tag)
+          break
