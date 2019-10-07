@@ -9,8 +9,17 @@
 <div class="post-categories">
   Categories:
   {% for category in categories %}
-    <a class="badge badge-dark" href="{{ site.url }}/category/{{ category | slugize }}">{{ category }}</a>
-    {% unless forloop.last %}&nbsp;{% endunless %}
+    {% if category == "aws" %}
+      {% assign badge_type = "badge-warning" %}
+    {% elsif category == "kubernetes" %}
+      {% assign badge_type = "badge-primary" %}
+    {% elsif category == "terraform" %}
+      {% assign badge_type = "badge-danger" %}
+    {% else %}
+      {% assign badge_type = "badge-secondary" %}
+    {% endif %}
+
+    <a class="badge {{ badge_type }}" href="{{ site.url }}/category/{{ category | slugize }}">{{ category }}</a>
   {% endfor %}
 </div>
 
@@ -18,7 +27,6 @@
   Tags:
   {% for tag in tags %}
     <a class="badge badge-dark" href="{{ site.url }}/tag/{{ tag }}">{{ tag }}</a>
-    {% unless forloop.last %},{% endunless %}
   {% endfor %}
 </div>
 <br/>
