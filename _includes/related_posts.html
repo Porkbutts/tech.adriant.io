@@ -9,33 +9,33 @@
 <ul class="related-posts">
 {% for post in site.posts %}
 
-    {% assign sameTagCount = 0 %}
-    {% assign commonTags = '' %}
+  {% assign sameTagCount = 0 %}
+  {% assign commonTags = '' %}
 
-    {% for category in post.categories %}
-      {% if post.url != page.url %}
-        {% if page.categories contains category %}
-          {% assign sameTagCount = sameTagCount | plus: 1 %}
-          {% capture tagmarkup %} <span class="label label-default">{{ category }}</span> {% endcapture %}
-          {% assign commonTags = commonTags | append: tagmarkup %}
-        {% endif %}
-      {% endif %}
-    {% endfor %}
-
-    {% if sameTagCount >= minCommonTags %}
-      <li>
-        <a href="{{ post.url }}">
-          {{ post.title }}
-          <small>{{ post.date | date_to_string }}</small>
-        </a>
-      </li>
-      {% assign maxRelatedCounter = maxRelatedCounter | plus: 1 %}
-      {% if maxRelatedCounter >= maxRelated %}
-        {% break %}
+  {% for category in post.categories %}
+    {% if post.url != page.url %}
+      {% if page.categories contains category %}
+        {% assign sameTagCount = sameTagCount | plus: 1 %}
+        {% capture tagmarkup %} <span class="label label-default">{{ category }}</span> {% endcapture %}
+        {% assign commonTags = commonTags | append: tagmarkup %}
       {% endif %}
     {% endif %}
-
   {% endfor %}
+
+  {% if sameTagCount >= minCommonTags %}
+    <li>
+      <a href="{{ post.url }}">
+        {{ post.title }}
+        <small>{{ post.date | date_to_string }}</small>
+      </a>
+    </li>
+    {% assign maxRelatedCounter = maxRelatedCounter | plus: 1 %}
+    {% if maxRelatedCounter >= maxRelated %}
+      {% break %}
+    {% endif %}
+  {% endif %}
+
+{% endfor %}
 </ul>
 
 </div>

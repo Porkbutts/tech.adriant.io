@@ -4,7 +4,7 @@ category: general
 tags: example
 ---
 
-This is an example post. Read more to see markdown syntax.
+This is an example post to see how markdown will be rendered on the site.
 
  <!--more-->
 
