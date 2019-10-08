@@ -29,15 +29,15 @@ $ bundle add <gem>
 ## Run locally
 ```
 # Development
-$ ./bin/serve-dev.sh
+$ ./script/serve-dev
 
 # Production
-$ ./bin/serve-prod.sh
+$ ./script/serve-prod
 ```
 
 ## Collect tags from posts and create the layouts
 ```
-$ ./bin/update_tags.rb
+$ ./script/update_tags
 ```
 
 ## Useful Reading

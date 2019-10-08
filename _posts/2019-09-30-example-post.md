@@ -1,10 +1,11 @@
 ---
 layout: post
-category: general
+categories: general
 tags: example
+comments: false
 ---
 
-This is an example post to see how markdown will be rendered on the site.
+This is an example post to see what rendered markdown looks like on the site.
 
  <!--more-->
 
