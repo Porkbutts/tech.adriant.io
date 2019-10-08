@@ -33,11 +33,11 @@ and optionally a read more separator.
 ```
 ---
 layout: post
-category: general
-tags: aws s3
+categories: aws kubernetes
+tags: s3 eks
 ---
 
-Hello I'm here to talk about s3.
+Hello I'm here to talk about s3 and eks.
 
 <!--more-->
 
