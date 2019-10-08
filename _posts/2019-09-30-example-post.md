@@ -5,7 +5,7 @@ tags: example
 comments: false
 ---
 
-This is an example post to see what rendered markdown looks like on the site.
+This is an example post that shows what rendered markdown looks like on the site.
 
  <!--more-->
 

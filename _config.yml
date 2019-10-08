@@ -21,7 +21,7 @@ exclude: [CNAME, README.md, .gitignore, Gemfile, Gemfile.lock, script]
 
 permalink: pretty
 
-paginate: 2
+paginate: 3
 paginate_path: /page:num/
 
 defaults:
