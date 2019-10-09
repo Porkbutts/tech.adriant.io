@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Setting up the AWS Command-Line Interface
+title: Getting started with the AWS Command-Line Interface
 categories: aws
 tags: tutorial
 ---
