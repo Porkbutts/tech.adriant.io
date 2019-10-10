@@ -90,14 +90,135 @@ The next page shows that IAM User creation was successful. The *Access Key ID* w
 **Note that for security reasons, you will not be able to look up the secret access key after this point**. If you end up losing access to your secret access key, you will have to create a new set of access keys, but not necessarily a new user.
 
 ## Update the CLI to use access keys
-Run the `aws configure` command which will prompt you for the access and secret key. You can leave the region and output as their defaults. This command will create two files `~/.aws/credentials` and `~/.aws/config` and update their contents with the information you specified. You can always update these files directly rather than using the `aws configure` command.
+Run the `aws configure` command which will prompt you for the access and secret key.
 
-The `awscli` tool should now be configured to use the `default` profile which uses your access keys.
+```bash
+$ aws configure
+AWS Access Key ID [****************MBAQ]:
+AWS Secret Access Key [****************1H4e]:
+Default region name [us-east-1]:
+Default output format [None]:
+```
+
+You can leave the defaults for *region* and *output* when prompted. Your output may look different from mine since I already have default credentials configured.
+
+This command creates two files `~/.aws/credentials`, `~/.aws/config` if they do not exist, and updates their contents with the information provided. You can update or create these files by hand rather than using the `aws configure` command.
+
+The `awscli` tool should now be configured to use the `default` profile which is associated with the new access keys.
+
+Try running the `aws sts get-caller-identity` command.
+
+```bash
+$ aws sts get-caller-identity
+{
+    "Account": "xxxx",
+    "UserId": "AIDA5IXRS7JVGTIATEOOB",
+    "Arn": "arn:aws:iam::xxxx:user/test"
+}
+```
+
+This command simply returns the caller's identity and you can see the "test" username present in the **Arn** field.
+
+## Getting to know the AWS CLI
+
+The syntax for `awscli` commands looks like `aws <command> <subcommand> <arguments>`. The *command* is usally the name of an AWS service like `s3`, `ec2`, `iam`, etc. The *subcommand* is usually an action associated with that service, for example `ec2 start-instances` or `iam create-user`.
+
+To get a list of available services you can run `aws help`. To get a list of available actions for a particular service you can run `aws <command> help`, e.g. `aws ec2 help`.
+
+Let's try creating an S3 Bucket from the command-line. S3 stands for *Simple Storage Service*, and it is Amazon's blob storage service for uploading and downloading arbitrary files. The command for creating a bucket is `aws s3 mb`. To know what arguments this command takes, we should run
+
+```bash
+$ aws s3 mb help
+```
+
+This returns a man-pages style document which tells us everything we need to know about the `aws s3 mb` command.
+
+```
+MB()                                                                      MB()
+
+
+
+NAME
+       mb -
+
+DESCRIPTION
+       Creates an S3 bucket.
+
+       See 'aws help' for descriptions of global parameters.
+
+SYNOPSIS
+            mb
+          <S3Uri>
+
+OPTIONS
+       path (string)
+
+       See 'aws help' for descriptions of global parameters.
+
+EXAMPLES
+       The  following  mb command creates a bucket.  In this example, the user
+       makes the bucket mybucket.  The bucket is created in the region  speci-
+       fied in the user's configuration file:
+
+          aws s3 mb s3://mybucket
+
+       Output:
+...skipping...
+OPTIONS
+       path (string)
+
+       See 'aws help' for descriptions of global parameters.
+
+EXAMPLES
+       The  following  mb command creates a bucket.  In this example, the user
+       makes the bucket mybucket.  The bucket is created in the region  speci-
+       fied in the user's configuration file:
+
+          aws s3 mb s3://mybucket
+
+       Output:
+
+          make_bucket: s3://mybucket
+
+       The  following mb command creates a bucket in a region specified by the
+       --region parameter.   In  this  example,  the  user  makes  the  bucket
+       mybucket in the region us-west-1:
+
+          aws s3 mb s3://mybucket --region us-west-1
+
+       Output:
+
+          make_bucket: s3://mybucket
+
+
+
+                                                                          MB()
+```
+
+So looking at the examples, we can see that in order to create a bucket named "mybucket" we should run the command `aws s3 mb s3://mybucket`.
+
+```bash
+$ aws s3 mb s3://test-9187263
+make_bucket: test-9187263
+```
+
+In this example we created an S3 bucket named `test-9187263`. Amazon requires S3 bucket names to be globally unique across all of AWS, similar to domain names on the internet. So if you tried to make a bucket named "mybucket" you probably ran into a **BucketAlreadyExists** error.
+
+We can delete the bucket using the `aws s3 rb` command. This command accepts a single argument which, like the make-bucket command, is the S3Uri. If you weren't sure about the syntax of the command you could have run `aws s3 rb help` to see usage documentation and examples.
+
+```
+$ aws s3 rb s3://test-9187263
+remove_bucket: test-9187263
+```
 
 ## Summary
-You created an **IAM User** with programmatic access and attached the **PowerUserAccess** policy to the new user. This gives the user programmatic access to do most things in AWS, with the exception being creation of *other* IAM resources.
+- You created an **IAM User** with programmatic access and attached the **PowerUserAccess** policy to the new user. This gives the user permission to access most AWS services and perform most actions, and in general is not recommended for security purposes.
 
-You noted the *Access Key ID* and *Secret access key* for the new user and updated your AWS credentials file with these keys.
+- You noted the *Access Key ID* and *Secret access key* for the new user and configured the `awscli` tool to use these access keys.
+
+- You learned about the syntax of the `awscli` tool, and how to get more information about a specific `awscli` command.
+
+- You created an S3 bucket and deleted the same S3 bucket.
 
 
 [searchbar-iam]: {{ site.images }}aws-console-search-iam.png
