@@ -9,6 +9,7 @@ In this tutorial you'll install the AWS command line interface and learn how to 
 
  <!--more-->
 
+
 ## Installing the AWS CLI (Command-Line Interface)
 
 Make sure you have `python` and `pip` installed. `pip` is a tool for installing python packages. You can check that you have them installed using these commands.
@@ -53,8 +54,56 @@ In order to make use of the `awscli` tool, you will need programmatic access key
 ## What is an IAM User?
 In this next section, you're going to create an **IAM User** from the AWS Console. IAM stands for **Identity and Access Management** and it is used extensively in AWS to allow or deny permission to resources and services.
 
-When you first create an AWS account, you can only login as the **AWS Account Root User**. This user has the permission to do anything and everything in your account. If you create access keys for the root user and the keys are compromised, there is no limit to what a malicious actor can do in your account. You could wake up one morning to [find out that tens of thousands of dollars in charges](https://www.reddit.com/r/aws/comments/8rj9ep/my_aws_account_was_hacked/) were incurred to your account.
+When you first create an AWS account, you can only login as the **AWS Account Root User**. This user has the permission to do anything and everything in your account. If you create access keys for the root user and the keys are compromised, there is no limit to what a malicious actor can do in your account, and you could wake up one morning to an AWS bill for tens of thousands of dollars.
 
-Therefore, it's generally recommended to create another user or set of users with limited access, while keeping the root account credentials securely locked away at all times.
+It's generally recommended to create another user or set of users with limited access, while keeping the root account credentials securely locked away. However, since IAM is beyond the scope of this tutorial, we'll be creating a user with very permissive access for the sake of convenience. Please note this is only a slight improvement from using the root account directly and is not very secure nor recommended for a production setup.
 
 ### Create the IAM User
+Log in to the AWS console and search for the IAM service.
+![AWS Console searchbar IAM][searchbar-iam]
+
+
+Click on the *Users* link.
+
+![IAM dashboard users link][users-link]
+
+Click on the *Add user* button.
+
+![IAM dashboard add user button][add-users-btn]
+
+Fill in the username and make sure to check *Programmatic access*. Click *Next: Permissions*.
+
+![Add user page one][create-usr-1]
+
+Click on *Attach existing policies directly* and search for **PowerUserAccess**. Select the policy and click *Next: Tags*.
+
+![Select PowerUserAccess policy][poweruser-policy]
+
+Skip the tags section and click *Next: Review*. The summary should look something like this.
+
+![Create user summary][review-create]
+
+The next page shows that IAM User creation was successful. The *Access Key ID* will be displayed, but you will have to click *Show* to display the *Secret access key*. You will need to take note of both of these keys for CLI access.
+
+![Display access and secret key][access-key-secret-key]
+
+**Note that for security reasons, you will not be able to look up the secret access key after this point**. If you end up losing access to your secret access key, you will have to create a new set of access keys, but not necessarily a new user.
+
+## Update the CLI to use access keys
+Run the `aws configure` command which will prompt you for the access and secret key. You can leave the region and output as their defaults. This command will create two files `~/.aws/credentials` and `~/.aws/config` and update their contents with the information you specified. You can always update these files directly rather than using the `aws configure` command.
+
+The `awscli` tool should now be configured to use the `default` profile which uses your access keys.
+
+## Summary
+You created an **IAM User** with programmatic access and attached the **PowerUserAccess** policy to the new user. This gives the user programmatic access to do most things in AWS, with the exception being creation of *other* IAM resources.
+
+You noted the *Access Key ID* and *Secret access key* for the new user and updated your AWS credentials file with these keys.
+
+
+[searchbar-iam]: {{ site.images }}aws-console-search-iam.png
+[users-link]: {{ site.images }}iam-dashboard-select-users.png
+[add-users-btn]: {{ site.images }}iam-dashboard-add-user-button.png
+[create-usr-1]: {{ site.images }}iam-create-user-page-one.png
+[poweruser-policy]: {{ site.images }}attach-power-user-iam-policy.png
+[review-create]: {{ site.images }}iam-user-create-review.png
+[access-key-secret-key]: {{ site.images }}access-key-secret-key.png
