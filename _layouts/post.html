@@ -11,4 +11,8 @@ excerpt_separator: <!--more-->
 
 {% include related_posts.html %}
 
-{% if site.environment == "production" and page.comments %}{% include disqus.html %}{% endif %}
+{% if site.environment == "production" and page.comments %}
+{% include disqus.html %}
+{% else %}
+<small>Comments have been disabled on this post.</small>
+{% endif %}
