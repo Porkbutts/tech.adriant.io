@@ -19,6 +19,8 @@ plugins:
 
 exclude: [CNAME, README.md, .gitignore, Gemfile, Gemfile.lock, script]
 
+excerpt_separator: <!--more-->
+
 permalink: pretty
 
 paginate: 5
