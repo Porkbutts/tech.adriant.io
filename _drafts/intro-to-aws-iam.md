@@ -5,6 +5,7 @@ categories: aws
 tags: iam
 ---
 
+AWS Identity and Access Management or IAM for short is
 
  <!--more-->
 
