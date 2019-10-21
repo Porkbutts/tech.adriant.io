@@ -15,19 +15,65 @@ title: Home
   {% endfor %}
 </div>
 
-<div class="pagination">
-  {% if paginator.next_page %}
-    <a class="pagination-item older" href="{{ "/page" | relative_url }}{{paginator.next_page}}">Older</a>
-  {% else %}
-    <span class="pagination-item older">Older</span>
+{% if paginator.total_pages > 1 %}
+
+  {% assign start = paginator.page | minus: 2 %}
+  {% assign end = paginator.page | plus: 2 %}
+
+  {% if start < 1 %}
+    {% assign start = 1 %}
+    {% assign end = start | plus: 4 %}
+  {% elsif end > paginator.total_pages %}
+    {% assign start = paginator.total_pages | minus: 4 %}
+    {% assign end = paginator.total_pages %}
   {% endif %}
+
+  {% if start < 1 %}
+    {% assign start = 1 %}
+  {% endif %}
+
+  {% if end > paginator.total_pages %}
+    {% assign end = paginator.total_pages %}
+  {% endif %}
+
+  {% assign previous_button = '<i class="fa fa-angle-double-left"></i>' %}
+  {% assign next_button = '<i class="fa fa-angle-double-right"></i>' %}
+
+<div class="pagination-wrapper">
+  <ul class="pagination justify-content-center">
+    {% comment %}Hack: first list element is getting weird margin so add a hidden no-op one.{% endcomment %}
+    <li class="page-item" style="display: none;"></li>
   {% if paginator.previous_page %}
-    {% if paginator.page == 2 %}
-      <a class="pagination-item newer" href="{{ "/" | absolute_url }}">Newer</a>
-    {% else %}
-      <a class="pagination-item newer" href="{{ "/page" | relative_url }}{{paginator.previous_page}}">Newer</a>
-    {% endif %}
+    <li class="page-item"><a class="page-link" href="{{ paginator.previous_page_path | prepend: site.baseurl | replace: '//', '/' }}">{{ previous_button }}</a></li>
   {% else %}
-    <span class="pagination-item newer">Newer</span>
+    <li class="page-item disabled"><span class="page-link">{{ previous_button }}</span></li>
   {% endif %}
+
+  {% if start > 1 %}
+    <li class="page-item"><a class="page-link" href="{{ site.baseurl }}/">1</a></li>
+    <li class="page-item disabled"><span class="page-link">&middot;&middot;&middot;</span></li>
+  {% endif %}
+
+  {% for page in (start..end) %}
+    {% if page == paginator.page %}
+    <li class="page-item active"><a class="page-link" href="#">{{ page }} <span class="sr-only">(current)</span></a></li>
+    {% elsif page == 1 %}
+    <li class="page-item"><a class="page-link" href="{{ site.baseurl }}/">{{ page }}</a></li>
+    {% else %}
+    <li class="page-item"><a class="page-link" href="{{ site.baseurl }}/page{{ page }}">{{ page }}</a></li>
+    {% endif %}
+  {% endfor %}
+
+  {% if end < paginator.total_pages %}
+    <li class="page-item disabled"><span class="page-link">&middot;&middot;&middot;</span></li>
+    <li class="page-item"><a class="page-link" href="{{ site.baseurl }}/page{{ paginator.total_pages }}">{{ paginator.total_pages }}</a></li>
+  {% endif %}
+
+  {% if paginator.next_page %}
+    <li class="page-item"><a class="page-link" href="{{ paginator.next_page_path | prepend: site.baseurl | replace: '//', '/' }}">{{ next_button }}</a></li>
+  {% else %}
+    <li class="page-item disabled"><span class="page-link">{{ next_button }}</span></li>
+  {% endif %}
+  </ul>
 </div>
+{% endif %}
