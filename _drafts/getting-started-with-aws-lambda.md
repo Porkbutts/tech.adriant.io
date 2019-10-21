@@ -116,7 +116,7 @@ Environment variables are useful for parameterizing things like database connect
 
 ### Basic Settings
 
-I'll be skipping over a few of the other sections but I wanted to cover the *Basic Settings* section.
+I'll be skipping over a few of the other sections but I wanted to make sure to cover the *Basic Settings* section.
 
 ![Lambda UI Basic Settings][lambda-ui-basic-settings]
 
@@ -125,13 +125,37 @@ In this section you define how much *Memory* your Lambda function requires. It r
 These fields are relevant because with Lambda, you are billed either by how many executions or by how many **GB-seconds** you use per month. For more information on pricing, see <https://aws.amazon.com/lambda/pricing/>. And don't worry, at the time of writing, this tutorial qualifies under the free-tier.
 
 ## Triggers
-### Attach a trigger to it like SNS
 
-### Cloudwatch scheduled event trigger
+Now that we have a basic understanding of Lambda and a working function, let's try attaching a few different triggers to automatically kick off a function execution instead of manually triggering it with a *TestEvent*.
 
-## Update the function to return some JSON
+### Cloudwatch Scheduled Event
+Cloudwatch scheduled events are one of the simplest types of triggers. A cloudwatch scheduled event, as the name implies, simply triggers on a preset schedule. Let's start by creating a simple cloudwatch scheduled event that triggers our function once a day.
 
-## Hook it up to an API with lambda proxy integration
+In the *Designer* section, click *Add Trigger*.
+
+![Lambda add trigger button][lambda-add-trigger-btn]
+
+Next, select *CloudWatch Events* from the dropdown and fill in the form like so:
+
+![Lambda create cloudwatch event trigger][lambda-trigger-cw-event-create-rule-form]
+
+You should now see the *CloudWatch Events* trigger summary in the designer view.
+
+![Lambda designer cloudwatch trigger][lambda-designer-with-cw-event]
+
+To see the cloudwatch scheduled event in action, you might want to change the schedule to something more frequent like once a minute.
+
+## Summary
+In this tutorial we learned how to do the following:
+
+- Create a lambda function from scratch with basic permissions
+- Update code using the in-browser code editor
+- View log output for a lambda function execution
+- Attach an event trigger such as CloudWatch scheduled events
+
+To delete your lambda function, navigate back to the functions dashboard and click on *Actions* -> *Delete*.
+
+![Delete a lambda function][delete-lambda-fn]
 
 [console-navbar-region]: {{ site.images }}aws-console-navbar-region.png
 [searchbar-lambda]: {{ site.images }}aws-console-search-lambda.png
@@ -148,3 +172,9 @@ These fields are relevant because with Lambda, you are billed either by how many
 [lambda-run-editor-results]: {{ site.images }}lambda-execution-editor-results.png
 
 [lambda-ui-basic-settings]: {{ site.images }}lambda-ui-basic-settings.png
+
+[lambda-add-trigger-btn]: {{ site.images }}lambda-add-trigger-button.png
+[lambda-trigger-cw-event-create-rule-form]: {{ site.images }}lambda-trigger-cloudwatch-event-create-rule-form.png
+[lambda-designer-with-cw-event]: {{ site.images }}lambda-designer-summary-with-cw-event.png
+
+[delete-lambda-fn]: {{ site.images }}delete-lambda-function.png
