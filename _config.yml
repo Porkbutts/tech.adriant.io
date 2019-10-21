@@ -16,6 +16,10 @@ google_adsense: ca-pub-3521905629903035
 plugins:
 - jekyll-sitemap
 - jekyll-paginate
+- jekyll-feed
+
+feed:
+  path: atom.xml
 
 exclude: [CNAME, README.md, .gitignore, Gemfile, Gemfile.lock, script]
 
