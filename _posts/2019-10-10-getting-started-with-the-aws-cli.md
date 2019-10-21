@@ -2,7 +2,7 @@
 layout: post
 title: Getting started with the AWS Command-Line Interface
 categories: aws
-tags: tutorial
+tags: cli
 ---
 
 In this tutorial you'll install the AWS command line interface and learn how to set up an IAM user with programmatic access to AWS resources. This tutorial assumes you have basic command-line knowledge on either Mac or a unix-like operating system.

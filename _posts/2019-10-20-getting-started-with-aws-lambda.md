@@ -2,7 +2,7 @@
 layout: post
 title: Getting started with AWS Lambda Functions
 categories: aws
-tags: lambda tutorial
+tags: lambda
 ---
 
 AWS Lambda is Amazon's *function as a service* product. It's a service that lets you package and run code without having to provision or manage servers. With Lambda, you only pay when your code is running. By contrast, you pay for managed servers like EC2 as long as they are running, even while they are not serving any requests.
