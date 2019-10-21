@@ -53,6 +53,9 @@ $ bundle add <gem>
 
 If it is a jekyll plugin, you may need to add it to the `plugins` section in `_config.yml`
 
+## Gotchas
+Not all jekyll plugins are supported by Github pages. I guess it makes sense, they don't read the Gemfile and install your deps, they just have a preset environment. Here's a list of supported plugins: https://pages.github.com/versions/
+
 ## Useful Reading
 - [Jekyll permalinks](https://jekyllrb.com/docs/permalinks/)
 - [Jekyll github-pages](https://jekyllrb.com/docs/github-pages/)
