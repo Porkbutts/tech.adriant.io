@@ -17,14 +17,19 @@ title: Home
 
 {% if paginator.total_pages > 1 %}
 
-  {% assign start = paginator.page | minus: 2 %}
-  {% assign end = paginator.page | plus: 2 %}
+  {% assign trail_behind = 2 %}
+  {% assign trail_ahead = 2 %}
+  {% assign num_shown_when_start_active = 3 %}
+  {% assign num_shown_when_end_active = 3 %}
+
+  {% assign start = paginator.page | minus: trail_behind %}
+  {% assign end = paginator.page | plus: trail_ahead %}
 
   {% if start < 1 %}
     {% assign start = 1 %}
-    {% assign end = start | plus: 4 %}
+    {% assign end = start | plus: num_shown_when_start_active %}
   {% elsif end > paginator.total_pages %}
-    {% assign start = paginator.total_pages | minus: 4 %}
+    {% assign start = paginator.total_pages | minus: num_shown_when_end_active %}
     {% assign end = paginator.total_pages %}
   {% endif %}
 
@@ -35,6 +40,8 @@ title: Home
   {% if end > paginator.total_pages %}
     {% assign end = paginator.total_pages %}
   {% endif %}
+
+  {% assign end_minus_one = paginator.total_pages | minus: 1 %}
 
   {% assign previous_button = '<i class="fa fa-angle-double-left"></i>' %}
   {% assign next_button = '<i class="fa fa-angle-double-right"></i>' %}
@@ -51,6 +58,8 @@ title: Home
 
   {% if start > 1 %}
     <li class="page-item"><a class="page-link" href="{{ site.baseurl }}/">1</a></li>
+  {% endif %}
+  {% if start > 2 %}
     <li class="page-item disabled"><span class="page-link">&middot;&middot;&middot;</span></li>
   {% endif %}
 
@@ -64,8 +73,10 @@ title: Home
     {% endif %}
   {% endfor %}
 
-  {% if end < paginator.total_pages %}
+  {% if end < end_minus_one %}
     <li class="page-item disabled"><span class="page-link">&middot;&middot;&middot;</span></li>
+  {% endif %}
+  {% if end < paginator.total_pages %}
     <li class="page-item"><a class="page-link" href="{{ site.baseurl }}/page{{ paginator.total_pages }}">{{ paginator.total_pages }}</a></li>
   {% endif %}
 
