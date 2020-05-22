@@ -61,3 +61,4 @@ Not all jekyll plugins are supported by Github pages. I guess it makes sense, th
 - [Jekyll github-pages](https://jekyllrb.com/docs/github-pages/)
 - [Jekyll site variables](https://jekyllrb.com/docs/variables/)
 - [Jekyll blogging](https://jekyllrb.com/docs/step-by-step/08-blogging/)
+
