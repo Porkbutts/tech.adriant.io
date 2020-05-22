@@ -12,6 +12,7 @@ description: A software development blog for cloud and DevOps.
 
 google_analytics: UA-117405938-2
 google_adsense: ca-pub-3521905629903035
+disqus_forum_name: subtlepurposecom
 
 plugins:
 - jekyll-sitemap
