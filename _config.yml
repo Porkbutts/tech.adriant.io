@@ -1,6 +1,6 @@
 environment: production
 
-theme: jekyll-theme-midnight
+theme: jekyll-theme-primer
 url: "https://tech.adriant.io"
 
 author:
