@@ -1,18 +1,18 @@
 environment: production
 
 theme: jekyll-theme-primer
-url: "https://subtlepurpose.com"
+url: "https://tech.adriant.io"
 
 author:
   name: Adrian Teng-Amnuay
   email: pumpadrian@gmail.com
 
-title: subtlepurpose
-description: a software development blog focused on devops and cloud infrastructure.
+title: tech.adriant.io
+description: a software development blog with a focus on devops and cloud infrastructure
 
-google_analytics: UA-117405938-2
-google_adsense: ca-pub-3521905629903035
-disqus_forum_name: subtlepurposecom
+google_analytics: UA-117405938-7
+google_adsense: 
+disqus_forum_name: adriant-io
 
 plugins:
 - jekyll-sitemap
