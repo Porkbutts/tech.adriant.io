@@ -158,7 +158,7 @@ Once the **Source** stage has completed, the status of the **Build** stage shoul
 {% include image.html file="codepipeline-codebuild-in-progress.png" %}
 
 Click on the **AWS CodeBuild** link to be redirected to the build history page. You should see the latest build for your project. Click on the build for more details. You should see a summary of the build phase outputs and a detailed log as well. Verify that the command `echo Hello from CodeBuild` was successfully run.
-{% include image.html file="ccodebuild-build-summary.png" %}
+{% include image.html file="codebuild-build-summary.png" %}
 
 Now our builds will automatically kick off each time we push the code to the master branch, and we can easily control how we build our project simply by making changes to the buildspec.yml file.
 
