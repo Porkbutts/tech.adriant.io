@@ -18,11 +18,12 @@ plugins:
 - jekyll-sitemap
 - jekyll-paginate
 - jekyll-feed
+- jekyll-redirect-from
 
 feed:
   path: atom.xml
 
-exclude: [CNAME, README.md, .gitignore, Gemfile, Gemfile.lock, script]
+exclude: [vendor, .gitignore, Gemfile, Gemfile.lock, bin]
 
 excerpt_separator: <!--more-->
 

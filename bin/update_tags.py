@@ -18,6 +18,7 @@ def create_tag_file(tag):
   if os.path.exists(filename):
     return
 
+  print('Creating tag file {}'.format(filename))
   contents = '---\nlayout: tag\ntitle: "Tag: {0}"\ntag: {0}\n---\n'.format(tag)
   with open(filename, 'w') as f:
     f.write(contents)
@@ -25,6 +26,9 @@ def create_tag_file(tag):
 
 if __name__ == '__main__':
   clean_tag_files()
+
+  if not os.path.exists(TAGS_DIR):
+    os.makedirs(TAGS_DIR)
 
   for filename in os.listdir(POSTS_DIR):
 
