@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Getting started with AWS Lambda Functions | technology</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Getting started with AWS Lambda Functions" />
+<meta name="author" content="Adrian Teng-Amnuay" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="AWS Lambda is Amazon’s function as a service product. It’s a service that lets you package and run code without having to provision or manage servers. With Lambda, you only pay when your code is running. By contrast, you pay for managed servers like EC2 as long as they are running, even while they are not serving any requests. To begin with AWS Lambda, you first write some code in one of the supported languages, you package and upload this code to Lambda, and now you have a Lambda function that can be run on demand. The Lambda function can be triggered from other AWS services such as SNS, SQS, API Gateway, and Cloudwatch events. Another benefit of Lambda is that it scales automatically based on the number of requests. In this tutorial, I’ll go over how to create and manage a Lambda function, as well as how to trigger the lambda function from different event sources. This tutorial assumes you know how to write some very basic code and are familiar with the AWS Console." />
+<meta property="og:description" content="AWS Lambda is Amazon’s function as a service product. It’s a service that lets you package and run code without having to provision or manage servers. With Lambda, you only pay when your code is running. By contrast, you pay for managed servers like EC2 as long as they are running, even while they are not serving any requests. To begin with AWS Lambda, you first write some code in one of the supported languages, you package and upload this code to Lambda, and now you have a Lambda function that can be run on demand. The Lambda function can be triggered from other AWS services such as SNS, SQS, API Gateway, and Cloudwatch events. Another benefit of Lambda is that it scales automatically based on the number of requests. In this tutorial, I’ll go over how to create and manage a Lambda function, as well as how to trigger the lambda function from different event sources. This tutorial assumes you know how to write some very basic code and are familiar with the AWS Console." />
+<link rel="canonical" href="https://tech.adriant.io/aws/2019/10/20/getting-started-with-aws-lambda/" />
+<meta property="og:url" content="https://tech.adriant.io/aws/2019/10/20/getting-started-with-aws-lambda/" />
+<meta property="og:site_name" content="technology" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-10-20T00:00:00+00:00" />
+<script type="application/ld+json">
+{"description":"AWS Lambda is Amazon’s function as a service product. It’s a service that lets you package and run code without having to provision or manage servers. With Lambda, you only pay when your code is running. By contrast, you pay for managed servers like EC2 as long as they are running, even while they are not serving any requests. To begin with AWS Lambda, you first write some code in one of the supported languages, you package and upload this code to Lambda, and now you have a Lambda function that can be run on demand. The Lambda function can be triggered from other AWS services such as SNS, SQS, API Gateway, and Cloudwatch events. Another benefit of Lambda is that it scales automatically based on the number of requests. In this tutorial, I’ll go over how to create and manage a Lambda function, as well as how to trigger the lambda function from different event sources. This tutorial assumes you know how to write some very basic code and are familiar with the AWS Console.","url":"https://tech.adriant.io/aws/2019/10/20/getting-started-with-aws-lambda/","@type":"BlogPosting","headline":"Getting started with AWS Lambda Functions","dateModified":"2019-10-20T00:00:00+00:00","datePublished":"2019-10-20T00:00:00+00:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://tech.adriant.io/aws/2019/10/20/getting-started-with-aws-lambda/"},"author":{"@type":"Person","name":"Adrian Teng-Amnuay"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=59fc7cbc405ad69814cb8fc6e4c6ce3431b21a79">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://tech.adriant.io/">technology</a> <small>a software development blog with a focus on devops and cloud infrastructure</small></h1>
+      
+
+      <div class="post">
+  <h1 class="post-title">Getting started with AWS Lambda Functions</h1>
+  <span class="post-date">20 October 2019</span>
+  
+
+<div class="post-categories">
+  Categories:
+  
+    
+
+    <a class="badge badge-warning" href="https://tech.adriant.io/category/aws">aws</a>
+  
+</div>
+
+<div class="post-tags">
+  Tags:
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/lambda">lambda</a>
+  
+</div>
+<br/>
+
+  <p>AWS Lambda is Amazon’s <em>function as a service</em> product. It’s a service that lets you package and run code without having to provision or manage servers. With Lambda, you only pay when your code is running. By contrast, you pay for managed servers like EC2 as long as they are running, even while they are not serving any requests.</p>
+
+<p>To begin with AWS Lambda, you first write some code in one of the supported languages, you package and upload this code to Lambda, and now you have a <em>Lambda function</em> that can be run on demand. The Lambda function can be triggered from other AWS services such as SNS, SQS, API Gateway, and Cloudwatch events. Another benefit of Lambda is that it scales automatically based on the number of requests.</p>
+
+<p>In this tutorial, I’ll go over how to create and manage a Lambda function, as well as how to trigger the lambda function from different event sources. This tutorial assumes you know how to write some very basic code and are familiar with the AWS Console.</p>
+
+<p><a class="anchor" id="read-more"></a></p>
+
+<h2 id="create-a-lambda-function">Create a Lambda Function</h2>
+<p>Let’s start by creating a simple Lambda function. Navigate to the AWS Console and search for “Lambda”.</p>
+
+<p><img src="/assets/img/aws-console-search-lambda.png" alt="AWS Console searchbar Lambda" /></p>
+
+<p>Please make a note of the region in which you create your lambda function. AWS resources are generally tied to a specific region and Lambda is no exception.</p>
+
+<p><img src="/assets/img/aws-console-navbar-region.png" alt="AWS Console navbar region" /></p>
+
+<p>Next select the <em>Create function</em> button.</p>
+
+<p><img src="/assets/img/lambda-dashboard-create-function-button.png" alt="Lambda dashboard create function button" /></p>
+
+<p>In this tutorial we’ll be selecting <em>Author from Scratch</em>.</p>
+
+<p>Other options include <em>Use a blueprint</em> which lets you browse the repository of Lambda functions to use as a starter template, and <em>Serverless App repository</em>. The <em>Serverless App repository</em> contains <strong>CloudFormation</strong> templates which often define, in addition to one or more Lambda functions, a group of AWS resources to create. <strong>CloudFormation</strong> is outside the scope of this tutorial.</p>
+
+<p>Fill out the form by giving your function a name and selecting the runtime language of your choice. For the execution role, we’ll create a new one with basic permissions.</p>
+
+<p><img src="/assets/img/lambda-dashboard-create-form.png" alt="Lambda dashboard create function form" /></p>
+
+<p>An execution role is an <em>IAM Role</em> that the Lambda function assumes whenever it runs. This role has permissions tied to it so you can limit the scope of what the lambda function does. There are three options:</p>
+<ul>
+  <li><em>Create a new role with basic Lambda permissions</em>: Lambda creates a new IAM role with minimal permissions, ie. ability to send CloudWatch logs, for your Lambda. This is the one we’ve chosen for convenience.</li>
+  <li><em>Use an existing role</em>: Select a role which already exists.</li>
+  <li><em>Create a new role from AWS policy templates</em>: Creates an IAM role from several cookie-cutter policy templates.</li>
+</ul>
+
+<p>Click <em>Create function</em> and wait for the lambda function to be created.</p>
+
+<h2 id="getting-to-know-the-ui">Getting to know the UI</h2>
+
+<h3 id="the-designer">The Designer</h3>
+
+<p>Once your Lambda function has been created, you should be redirected to the the following page. The designer section gives you a visualization of <em>Triggers</em> on the left, which are events that can trigger your lambda function to run, and services that your Lambda function has permission to interact with on the right.</p>
+
+<p><img src="/assets/img/lambda-ui-designer-section.png" alt="Lambda UI designer section" /></p>
+
+<p>In this case, our Lambda function currently has no associated triggers, and only has permission to send logs to Cloudwatch. The services that your Lambda function has permission to interact with, is defined by the IAM role that was associated with it during creation time. The Lambda function’s execution role can be updated even after the Lambda function is created. It can also be replaced with a different role.</p>
+
+<h3 id="the-in-browser-code-editor">The In-browser code editor</h3>
+
+<p>Lambda supports an in-browser code editor for convenience. You can update code, save your changes, and test them out as you go. While the in-browser editor is convenient for trying out Lambda, or working with smaller functions, it’s not recommended for larger projects because there are limitations around deployment package size.</p>
+
+<p><img src="/assets/img/lambda-ui-code-section.png" alt="Lambda UI code section" /></p>
+
+<h3 id="test-the-function">Test the function</h3>
+
+<h4 id="create-a-test-event">Create a test event</h4>
+<p>Our lambda has already been set up to return an object with <em>statusCode: 200</em> and <em>body: “Hello from Lambda!”</em>, so let’s try running it manually. Click on the <em>Test</em> button on the Lambda navigation bar.</p>
+
+<p><img src="/assets/img/lambda-ui-test-button.png" alt="Lambda UI test button" /></p>
+
+<p>This will open up a form where you can manage and create test events. When your lambda function runs, the event’s contents are passed to the <code class="language-plaintext highlighter-rouge">event</code> argument in your lambda function’s handler.</p>
+
+<p><img src="/assets/img/lambda-create-test-hello-event.png" alt="Lambda create test event form" /></p>
+
+<p>Every service that triggers Lambda passes the <code class="language-plaintext highlighter-rouge">event</code> argument with relevant information. For example if a Cloudwatch metric triggered your function, it would pass the metric value and threshold that caused the event to trigger. In this way, test events can be used to simulate different events, and you can test that your Lambda function behaves correctly in each scenario.</p>
+
+<h4 id="trigger-the-test-event">Trigger the test event</h4>
+
+<p>Once you’ve created the test <em>HelloEvent</em>, we can now trigger the lambda function with it. Make sure <em>HelloEvent</em> is selected and click <em>Test</em>.</p>
+
+<p><img src="/assets/img/lambda-select-test-event-and-run-test.png" alt="Lambda select HelloEvent and click test" /></p>
+
+<h4 id="view-the-log-output">View the log output</h4>
+
+<p>You should see that the lambda function executed and succeeded. You can view the logs by expanding the execution details at the top. Clicking <em>logs</em> will take you to the Cloudwatch dashboard where you can view historical logs across multiple runs of your Lambda function.</p>
+
+<p><img src="/assets/img/lambda-execution-log-details.png" alt="Lambda execution log details" /></p>
+
+<p>You can also view logs in the editor’s results section.</p>
+
+<p><img src="/assets/img/lambda-execution-editor-results.png" alt="Lambda execution editor results" /></p>
+
+<h4 id="print-out-the-event">Print out the event</h4>
+
+<p>Let’s update the Lambda function to print out the argument event. Update the function code like</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">json</span>
+
+<span class="k">def</span> <span class="nf">lambda_handler</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Event: {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">event</span><span class="p">))</span>  <span class="c1"># Add this line
+</span>    <span class="k">return</span> <span class="p">{</span>
+        <span class="s">'statusCode'</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="s">'body'</span><span class="p">:</span> <span class="n">json</span><span class="p">.</span><span class="n">dumps</span><span class="p">(</span><span class="s">'Hello from Lambda!'</span><span class="p">)</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<p>Click <em>Save</em> and run the function again with the <em>HelloEvent</em> test event. You should now see the event being printed out in the log output.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>START RequestId: 9a14a9d0-e6a4-4761-aeb6-e572ef6971e7 Version: $LATEST
+Event: {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+END RequestId: 9a14a9d0-e6a4-4761-aeb6-e572ef6971e7
+REPORT RequestId: 9a14a9d0-e6a4-4761-aeb6-e572ef6971e7	Duration: 19.07 ms	Billed Duration: 100 ms	Memory Size: 128 MB	Max Memory Used: 56 MB	Init Duration: 108.39 ms
+</code></pre></div></div>
+
+<h3 id="environtment-variables">Environtment Variables</h3>
+
+<p>Environment variables are useful for parameterizing things like database connection strings, <strong>Arn</strong> references to other AWS resources, environment specific settings, or really anything you want to control without having to make code changes and redeploy your function.</p>
+
+<h3 id="basic-settings">Basic Settings</h3>
+
+<p>I’ll be skipping over a few of the other sections but I wanted to make sure to cover the <em>Basic Settings</em> section.</p>
+
+<p><img src="/assets/img/lambda-ui-basic-settings.png" alt="Lambda UI Basic Settings" /></p>
+
+<p>In this section you define how much <em>Memory</em> your Lambda function requires. It receives CPU proportional to the amount of memory that you choose. You also specify a <em>Timeout</em>, which is used by Amazon to kill your function if it hasn’t finished processing within the set timeout.</p>
+
+<p>These fields are relevant because with Lambda, you are billed either by how many executions or by how many <strong>GB-seconds</strong> you use per month. For more information on pricing, see <a href="https://aws.amazon.com/lambda/pricing/">https://aws.amazon.com/lambda/pricing/</a>. And don’t worry, at the time of writing, this tutorial qualifies under the free-tier.</p>
+
+<h2 id="triggers">Triggers</h2>
+
+<p>Now that we have a basic understanding of Lambda and a working function, let’s try attaching a few different triggers to automatically kick off a function execution instead of manually triggering it with a <em>TestEvent</em>.</p>
+
+<h3 id="cloudwatch-scheduled-event">Cloudwatch Scheduled Event</h3>
+<p>Cloudwatch scheduled events are one of the simplest types of triggers. A cloudwatch scheduled event, as the name implies, simply triggers on a preset schedule. Let’s start by creating a simple cloudwatch scheduled event that triggers our function once a day.</p>
+
+<p>In the <em>Designer</em> section, click <em>Add Trigger</em>.</p>
+
+<p><img src="/assets/img/lambda-add-trigger-button.png" alt="Lambda add trigger button" /></p>
+
+<p>Next, select <em>CloudWatch Events</em> from the dropdown and fill in the form like so:</p>
+
+<p><img src="/assets/img/lambda-trigger-cloudwatch-event-create-rule-form.png" alt="Lambda create cloudwatch event trigger" /></p>
+
+<p>You should now see the <em>CloudWatch Events</em> trigger summary in the designer view.</p>
+
+<p><img src="/assets/img/lambda-designer-summary-with-cw-event.png" alt="Lambda designer cloudwatch trigger" /></p>
+
+<p>To see the cloudwatch scheduled event in action, you might want to change the schedule to something more frequent like once a minute.</p>
+
+<h2 id="summary">Summary</h2>
+<p>In this tutorial we learned how to do the following:</p>
+
+<ul>
+  <li>Create a lambda function from scratch with basic permissions</li>
+  <li>Update code using the in-browser code editor</li>
+  <li>View log output for a lambda function execution</li>
+  <li>Attach an event trigger such as CloudWatch scheduled events</li>
+</ul>
+
+<p>To delete your lambda function, navigate back to the functions dashboard and click on <em>Actions</em> -&gt; <em>Delete</em>.</p>
+
+<p><img src="/assets/img/delete-lambda-function.png" alt="Delete a lambda function" /></p>
+
+
+</div>
+
+<div class="related">
+
+<h2>Related Posts</h2>
+
+
+
+
+
+<ul class="related-posts">
+
+
+  
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2019/10/10/getting-started-with-the-aws-cli/">
+        Getting started with the AWS Command-Line Interface
+        <small>10 Oct 2019</small>
+      </a>
+    </li>
+    
+    
+  
+
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2018/07/01/continuous-deployment-with-aws-lambda/">
+        Continuous deployment with AWS lambda
+        <small>01 Jul 2018</small>
+      </a>
+    </li>
+    
+    
+  
+
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2018/05/10/hosting-jekyll-site-on-s3/">
+        Hosting a static Jekyll website on Amazon S3
+        <small>10 May 2018</small>
+      </a>
+    </li>
+    
+    
+      
+</ul>
+
+</div>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+this.page.url = "https://tech.adriant.io/aws/2019/10/20/getting-started-with-aws-lambda/";
+this.page.identifier = "/aws/2019/10/20/getting-started-with-aws-lambda/";
+};
+(function() {
+var d = document, s = d.createElement('script');
+s.src = "https://adriant-io.disqus.com/embed.js";
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        <p>Copyright &copy; 2021 Adrian Teng-Amnuay</p>
+      </div>
+
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-117405938-7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-117405938-7');
+</script>
+<!-- End Google Analytics -->
+
+      
+    
+  </body>
+</html>
+
+
+  
+
+
+
+
+
+
+

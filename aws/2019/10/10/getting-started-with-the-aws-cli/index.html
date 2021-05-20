@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Getting started with the AWS Command-Line Interface | technology</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Getting started with the AWS Command-Line Interface" />
+<meta name="author" content="Adrian Teng-Amnuay" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="In this tutorial you’ll install the AWS command line interface and learn how to set up an IAM user with programmatic access to AWS resources. This tutorial assumes you have basic command-line knowledge on either Mac or a unix-like operating system." />
+<meta property="og:description" content="In this tutorial you’ll install the AWS command line interface and learn how to set up an IAM user with programmatic access to AWS resources. This tutorial assumes you have basic command-line knowledge on either Mac or a unix-like operating system." />
+<link rel="canonical" href="https://tech.adriant.io/aws/2019/10/10/getting-started-with-the-aws-cli/" />
+<meta property="og:url" content="https://tech.adriant.io/aws/2019/10/10/getting-started-with-the-aws-cli/" />
+<meta property="og:site_name" content="technology" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-10-10T00:00:00+00:00" />
+<script type="application/ld+json">
+{"description":"In this tutorial you’ll install the AWS command line interface and learn how to set up an IAM user with programmatic access to AWS resources. This tutorial assumes you have basic command-line knowledge on either Mac or a unix-like operating system.","url":"https://tech.adriant.io/aws/2019/10/10/getting-started-with-the-aws-cli/","@type":"BlogPosting","headline":"Getting started with the AWS Command-Line Interface","dateModified":"2019-10-10T00:00:00+00:00","datePublished":"2019-10-10T00:00:00+00:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://tech.adriant.io/aws/2019/10/10/getting-started-with-the-aws-cli/"},"author":{"@type":"Person","name":"Adrian Teng-Amnuay"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=59fc7cbc405ad69814cb8fc6e4c6ce3431b21a79">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://tech.adriant.io/">technology</a> <small>a software development blog with a focus on devops and cloud infrastructure</small></h1>
+      
+
+      <div class="post">
+  <h1 class="post-title">Getting started with the AWS Command-Line Interface</h1>
+  <span class="post-date">10 October 2019</span>
+  
+
+<div class="post-categories">
+  Categories:
+  
+    
+
+    <a class="badge badge-warning" href="https://tech.adriant.io/category/aws">aws</a>
+  
+</div>
+
+<div class="post-tags">
+  Tags:
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/cli">cli</a>
+  
+</div>
+<br/>
+
+  <p>In this tutorial you’ll install the AWS command line interface and learn how to set up an IAM user with programmatic access to AWS resources. This tutorial assumes you have basic command-line knowledge on either Mac or a unix-like operating system.</p>
+
+<p><a class="anchor" id="read-more"></a></p>
+
+<h2 id="installing-the-aws-cli-command-line-interface">Installing the AWS CLI (Command-Line Interface)</h2>
+
+<p>Make sure you have <code class="language-plaintext highlighter-rouge">python</code> and <code class="language-plaintext highlighter-rouge">pip</code> installed. <code class="language-plaintext highlighter-rouge">pip</code> is a tool for installing python packages. You can check that you have them installed using these commands.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>python <span class="nt">--version</span>
+Python 2.7.16
+
+<span class="nv">$ </span>pip <span class="nt">--version</span>
+pip 19.1.1 from /usr/local/lib/python2.7/site-packages/pip <span class="o">(</span>python 2.7<span class="o">)</span>
+</code></pre></div></div>
+
+<p>Next install the <code class="language-plaintext highlighter-rouge">awscli</code> package. Note that your output may look different from mine.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>pip <span class="nb">install</span> <span class="nt">--user</span> awscli
+DEPRECATION: Python 2.7 will reach the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 won<span class="s1">'t be maintained after that date. A future version of pip will drop support for Python 2.7.
+Requirement already satisfied: awscli in /usr/local/lib/python2.7/site-packages (1.16.72)
+Requirement already satisfied: docutils&gt;=0.10 in /usr/local/lib/python2.7/site-packages (from awscli) (0.14)
+Requirement already satisfied: botocore==1.12.62 in /usr/local/lib/python2.7/site-packages (from awscli) (1.12.62)
+Requirement already satisfied: PyYAML&lt;=3.13,&gt;=3.10 in /usr/local/lib/python2.7/site-packages (from awscli) (3.13)
+Requirement already satisfied: s3transfer&lt;0.2.0,&gt;=0.1.12 in /usr/local/lib/python2.7/site-packages (from awscli) (0.1.13)
+Requirement already satisfied: rsa&lt;=3.5.0,&gt;=3.1.2 in /usr/local/lib/python2.7/site-packages (from awscli) (3.4.2)
+Requirement already satisfied: colorama&lt;=0.3.9,&gt;=0.2.5 in /usr/local/lib/python2.7/site-packages (from awscli) (0.3.9)
+Requirement already satisfied: urllib3&lt;1.25,&gt;=1.20; python_version == "2.7" in /usr/local/lib/python2.7/site-packages (from botocore==1.12.62-&gt;awscli) (1.24.1)
+Requirement already satisfied: jmespath&lt;1.0.0,&gt;=0.7.1 in /usr/local/lib/python2.7/site-packages (from botocore==1.12.62-&gt;awscli) (0.9.3)
+Requirement already satisfied: python-dateutil&lt;3.0.0,&gt;=2.1; python_version &gt;= "2.7" in /usr/local/lib/python2.7/site-packages (from botocore==1.12.62-&gt;awscli) (2.7.5)
+Requirement already satisfied: futures&lt;4.0.0,&gt;=2.2.0; python_version == "2.6" or python_version == "2.7" in /usr/local/lib/python2.7/site-packages (from s3transfer&lt;0.2.0,&gt;=0.1.12-&gt;awscli) (3.2.0)
+Requirement already satisfied: pyasn1&gt;=0.1.3 in /usr/local/lib/python2.7/site-packages (from rsa&lt;=3.5.0,&gt;=3.1.2-&gt;awscli) (0.4.4)
+Requirement already satisfied: six&gt;=1.5 in /usr/local/lib/python2.7/site-packages (from python-dateutil&lt;3.0.0,&gt;=2.1; python_version &gt;= "2.7"-&gt;botocore==1.12.62-&gt;awscli) (1.10.0)
+</span></code></pre></div></div>
+
+<p>Verify that the <code class="language-plaintext highlighter-rouge">awscli</code> tool was successfully installed.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws <span class="nt">--version</span>
+aws-cli/1.16.72 Python/2.7.16 Darwin/17.7.0 botocore/1.12.62
+</code></pre></div></div>
+
+<p>In order to make use of the <code class="language-plaintext highlighter-rouge">awscli</code> tool, you will need programmatic access keys that allow the <code class="language-plaintext highlighter-rouge">awscli</code> to <em>talk</em> to the Amazon Web Services API. API stands for <strong>Application Program Interface</strong> and Web APIs in particular have become a standard practice for enabling programmatic interaction with web services.</p>
+
+<h2 id="what-is-an-iam-user">What is an IAM User?</h2>
+<p>In this next section, you’re going to create an <strong>IAM User</strong> from the AWS Console. IAM stands for <strong>Identity and Access Management</strong> and it is used extensively in AWS to allow or deny permission to resources and services.</p>
+
+<p>When you first create an AWS account, you can only login as the <strong>AWS Account Root User</strong>. This user has the permission to do anything and everything in your account. If you create access keys for the root user and the keys are compromised, there is no limit to what a malicious actor can do in your account, and you could wake up one morning to an AWS bill for tens of thousands of dollars.</p>
+
+<p>It’s generally recommended to create another user or set of users with limited access, while keeping the root account credentials securely locked away. However, since IAM is beyond the scope of this tutorial, we’ll be creating a user with very permissive access for the sake of convenience. Please note this is only a slight improvement from using the root account directly and is not very secure nor recommended for a production setup.</p>
+
+<h3 id="create-the-iam-user">Create the IAM User</h3>
+<p>Log in to the AWS console and search for the IAM service.
+<img src="/assets/img/aws-console-search-iam.png" alt="AWS Console searchbar IAM" /></p>
+
+<p>Click on the <em>Users</em> link.</p>
+
+<p><img src="/assets/img/iam-dashboard-select-users.png" alt="IAM dashboard users link" /></p>
+
+<p>Click on the <em>Add user</em> button.</p>
+
+<p><img src="/assets/img/iam-dashboard-add-user-button.png" alt="IAM dashboard add user button" /></p>
+
+<p>Fill in the username and make sure to check <em>Programmatic access</em>. Click <em>Next: Permissions</em>.</p>
+
+<p><img src="/assets/img/iam-create-user-page-one.png" alt="Add user page one" /></p>
+
+<p>Click on <em>Attach existing policies directly</em> and search for <strong>PowerUserAccess</strong>. Select the policy and click <em>Next: Tags</em>.</p>
+
+<p><img src="/assets/img/attach-power-user-iam-policy.png" alt="Select PowerUserAccess policy" /></p>
+
+<p>Skip the tags section and click <em>Next: Review</em>. The summary should look something like this.</p>
+
+<p><img src="/assets/img/iam-user-create-review.png" alt="Create user summary" /></p>
+
+<p>The next page shows that IAM User creation was successful. The <em>Access Key ID</em> will be displayed, but you will have to click <em>Show</em> to display the <em>Secret access key</em>. You will need to take note of both of these keys for CLI access.</p>
+
+<p><img src="/assets/img/access-key-secret-key.png" alt="Display access and secret key" /></p>
+
+<p><strong>Note that for security reasons, you will not be able to look up the secret access key after this point</strong>. If you end up losing access to your secret access key, you will have to create a new set of access keys, but not necessarily a new user.</p>
+
+<h2 id="update-the-cli-to-use-access-keys">Update the CLI to use access keys</h2>
+<p>Run the <code class="language-plaintext highlighter-rouge">aws configure</code> command which will prompt you for the access and secret key.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws configure
+AWS Access Key ID <span class="o">[</span><span class="k">****************</span>MBAQ]:
+AWS Secret Access Key <span class="o">[</span><span class="k">****************</span>1H4e]:
+Default region name <span class="o">[</span>us-east-1]:
+Default output format <span class="o">[</span>None]:
+</code></pre></div></div>
+
+<p>You can leave the defaults for <em>region</em> and <em>output</em> when prompted. Your output may look different from mine since I already have default credentials configured.</p>
+
+<p>This command creates two files <code class="language-plaintext highlighter-rouge">~/.aws/credentials</code>, <code class="language-plaintext highlighter-rouge">~/.aws/config</code> if they do not exist, and updates their contents with the information provided. You can update or create these files by hand rather than using the <code class="language-plaintext highlighter-rouge">aws configure</code> command.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">awscli</code> tool should now be configured to use the <code class="language-plaintext highlighter-rouge">default</code> profile which is associated with the new access keys.</p>
+
+<p>Try running the <code class="language-plaintext highlighter-rouge">aws sts get-caller-identity</code> command.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws sts get-caller-identity
+<span class="o">{</span>
+    <span class="s2">"Account"</span>: <span class="s2">"xxxx"</span>,
+    <span class="s2">"UserId"</span>: <span class="s2">"AIDA5IXRS7JVGTIATEOOB"</span>,
+    <span class="s2">"Arn"</span>: <span class="s2">"arn:aws:iam::xxxx:user/test"</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>This command simply returns the caller’s identity and you can see the “test” username present in the <strong>Arn</strong> field.</p>
+
+<h2 id="getting-to-know-the-aws-cli">Getting to know the AWS CLI</h2>
+
+<p>The syntax for <code class="language-plaintext highlighter-rouge">awscli</code> commands looks like <code class="language-plaintext highlighter-rouge">aws &lt;command&gt; &lt;subcommand&gt; &lt;arguments&gt;</code>. The <em>command</em> is usally the name of an AWS service like <code class="language-plaintext highlighter-rouge">s3</code>, <code class="language-plaintext highlighter-rouge">ec2</code>, <code class="language-plaintext highlighter-rouge">iam</code>, etc. The <em>subcommand</em> is usually an action associated with that service, for example <code class="language-plaintext highlighter-rouge">ec2 start-instances</code> or <code class="language-plaintext highlighter-rouge">iam create-user</code>.</p>
+
+<p>To get a list of available services you can run <code class="language-plaintext highlighter-rouge">aws help</code>. To get a list of available actions for a particular service you can run <code class="language-plaintext highlighter-rouge">aws &lt;command&gt; help</code>, e.g. <code class="language-plaintext highlighter-rouge">aws ec2 help</code>.</p>
+
+<p>Let’s try creating an S3 Bucket from the command-line. S3 stands for <em>Simple Storage Service</em>, and it is Amazon’s blob storage service for uploading and downloading arbitrary files. The command for creating a bucket is <code class="language-plaintext highlighter-rouge">aws s3 mb</code>. To know what arguments this command takes, we should run</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws s3 mb <span class="nb">help</span>
+</code></pre></div></div>
+
+<p>This returns a man-pages style document which tells us everything we need to know about the <code class="language-plaintext highlighter-rouge">aws s3 mb</code> command.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MB()                                                                      MB()
+
+
+
+NAME
+       mb -
+
+DESCRIPTION
+       Creates an S3 bucket.
+
+       See 'aws help' for descriptions of global parameters.
+
+SYNOPSIS
+            mb
+          &lt;S3Uri&gt;
+
+OPTIONS
+       path (string)
+
+       See 'aws help' for descriptions of global parameters.
+
+EXAMPLES
+       The  following  mb command creates a bucket.  In this example, the user
+       makes the bucket mybucket.  The bucket is created in the region  speci-
+       fied in the user's configuration file:
+
+          aws s3 mb s3://mybucket
+
+       Output:
+...skipping...
+OPTIONS
+       path (string)
+
+       See 'aws help' for descriptions of global parameters.
+
+EXAMPLES
+       The  following  mb command creates a bucket.  In this example, the user
+       makes the bucket mybucket.  The bucket is created in the region  speci-
+       fied in the user's configuration file:
+
+          aws s3 mb s3://mybucket
+
+       Output:
+
+          make_bucket: s3://mybucket
+
+       The  following mb command creates a bucket in a region specified by the
+       --region parameter.   In  this  example,  the  user  makes  the  bucket
+       mybucket in the region us-west-1:
+
+          aws s3 mb s3://mybucket --region us-west-1
+
+       Output:
+
+          make_bucket: s3://mybucket
+
+
+
+                                                                          MB()
+</code></pre></div></div>
+
+<p>So looking at the examples, we can see that in order to create a bucket named “mybucket” we should run the command <code class="language-plaintext highlighter-rouge">aws s3 mb s3://mybucket</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws s3 mb s3://test-9187263
+make_bucket: test-9187263
+</code></pre></div></div>
+
+<p>In this example we created an S3 bucket named <code class="language-plaintext highlighter-rouge">test-9187263</code>. Amazon requires S3 bucket names to be globally unique across all of AWS, similar to domain names on the internet. So if you tried to make a bucket named “mybucket” you probably ran into a <strong>BucketAlreadyExists</strong> error.</p>
+
+<p>We can delete the bucket using the <code class="language-plaintext highlighter-rouge">aws s3 rb</code> command. This command accepts a single argument which, like the make-bucket command, is the S3Uri. If you weren’t sure about the syntax of the command you could have run <code class="language-plaintext highlighter-rouge">aws s3 rb help</code> to see usage documentation and examples.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ aws s3 rb s3://test-9187263
+remove_bucket: test-9187263
+</code></pre></div></div>
+
+<h2 id="summary">Summary</h2>
+<ul>
+  <li>
+    <p>You created an <strong>IAM User</strong> with programmatic access and attached the <strong>PowerUserAccess</strong> policy to the new user. This gives the user permission to access most AWS services and perform most actions, and in general is not recommended for security purposes.</p>
+  </li>
+  <li>
+    <p>You noted the <em>Access Key ID</em> and <em>Secret access key</em> for the new user and configured the <code class="language-plaintext highlighter-rouge">awscli</code> tool to use these access keys.</p>
+  </li>
+  <li>
+    <p>You learned about the syntax of the <code class="language-plaintext highlighter-rouge">awscli</code> tool, and how to get more information about a specific <code class="language-plaintext highlighter-rouge">awscli</code> command.</p>
+  </li>
+  <li>
+    <p>You created an S3 bucket and deleted the same S3 bucket.</p>
+  </li>
+</ul>
+
+
+</div>
+
+<div class="related">
+
+<h2>Related Posts</h2>
+
+
+
+
+
+<ul class="related-posts">
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2019/10/20/getting-started-with-aws-lambda/">
+        Getting started with AWS Lambda Functions
+        <small>20 Oct 2019</small>
+      </a>
+    </li>
+    
+    
+  
+
+
+
+  
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2018/07/01/continuous-deployment-with-aws-lambda/">
+        Continuous deployment with AWS lambda
+        <small>01 Jul 2018</small>
+      </a>
+    </li>
+    
+    
+  
+
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2018/05/10/hosting-jekyll-site-on-s3/">
+        Hosting a static Jekyll website on Amazon S3
+        <small>10 May 2018</small>
+      </a>
+    </li>
+    
+    
+      
+</ul>
+
+</div>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+this.page.url = "https://tech.adriant.io/aws/2019/10/10/getting-started-with-the-aws-cli/";
+this.page.identifier = "/aws/2019/10/10/getting-started-with-the-aws-cli/";
+};
+(function() {
+var d = document, s = d.createElement('script');
+s.src = "https://adriant-io.disqus.com/embed.js";
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        <p>Copyright &copy; 2021 Adrian Teng-Amnuay</p>
+      </div>
+
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-117405938-7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-117405938-7');
+</script>
+<!-- End Google Analytics -->
+
+      
+    
+  </body>
+</html>
+
+
+  
+
+
+
+
+
+
+

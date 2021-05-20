@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Continuous deployment with AWS lambda | technology</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Continuous deployment with AWS lambda" />
+<meta name="author" content="Adrian Teng-Amnuay" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="AWS lambda and the serverless paradigm are great. Abstracting away machines, platforms and environments allows developers to focus on code, which is a magical thing. For code that runs infrequently, the cost savings can be significant, since lambda eliminates the need for a dedicated, always-on host. But in spite of this, developing on lambda is not without its challenges. I’ve twice run into a situation where a project that runs fine on my Macbook fails to run on lambda. The first was due to a dependency on Python Pandas and the second time was because of PyQuery. According to this Stackoverflow post, static libraries need to be compiled on an EC2 Amazon Linux machine in order to run on lambda, which is pretty inconvenient. It would be neat if lambda could automatically install dependencies via the package.json file for Node or requirements.txt for Python. In any case, I ended up setting up my own CD pipeline to take care of this very task. Keep reading if you’d like to learn how to incorporate this into your own CI/CD pipeline." />
+<meta property="og:description" content="AWS lambda and the serverless paradigm are great. Abstracting away machines, platforms and environments allows developers to focus on code, which is a magical thing. For code that runs infrequently, the cost savings can be significant, since lambda eliminates the need for a dedicated, always-on host. But in spite of this, developing on lambda is not without its challenges. I’ve twice run into a situation where a project that runs fine on my Macbook fails to run on lambda. The first was due to a dependency on Python Pandas and the second time was because of PyQuery. According to this Stackoverflow post, static libraries need to be compiled on an EC2 Amazon Linux machine in order to run on lambda, which is pretty inconvenient. It would be neat if lambda could automatically install dependencies via the package.json file for Node or requirements.txt for Python. In any case, I ended up setting up my own CD pipeline to take care of this very task. Keep reading if you’d like to learn how to incorporate this into your own CI/CD pipeline." />
+<link rel="canonical" href="https://tech.adriant.io/aws/2018/07/01/continuous-deployment-with-aws-lambda/" />
+<meta property="og:url" content="https://tech.adriant.io/aws/2018/07/01/continuous-deployment-with-aws-lambda/" />
+<meta property="og:site_name" content="technology" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-07-01T00:00:00+00:00" />
+<script type="application/ld+json">
+{"description":"AWS lambda and the serverless paradigm are great. Abstracting away machines, platforms and environments allows developers to focus on code, which is a magical thing. For code that runs infrequently, the cost savings can be significant, since lambda eliminates the need for a dedicated, always-on host. But in spite of this, developing on lambda is not without its challenges. I’ve twice run into a situation where a project that runs fine on my Macbook fails to run on lambda. The first was due to a dependency on Python Pandas and the second time was because of PyQuery. According to this Stackoverflow post, static libraries need to be compiled on an EC2 Amazon Linux machine in order to run on lambda, which is pretty inconvenient. It would be neat if lambda could automatically install dependencies via the package.json file for Node or requirements.txt for Python. In any case, I ended up setting up my own CD pipeline to take care of this very task. Keep reading if you’d like to learn how to incorporate this into your own CI/CD pipeline.","url":"https://tech.adriant.io/aws/2018/07/01/continuous-deployment-with-aws-lambda/","@type":"BlogPosting","headline":"Continuous deployment with AWS lambda","dateModified":"2018-07-01T00:00:00+00:00","datePublished":"2018-07-01T00:00:00+00:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://tech.adriant.io/aws/2018/07/01/continuous-deployment-with-aws-lambda/"},"author":{"@type":"Person","name":"Adrian Teng-Amnuay"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=59fc7cbc405ad69814cb8fc6e4c6ce3431b21a79">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://tech.adriant.io/">technology</a> <small>a software development blog with a focus on devops and cloud infrastructure</small></h1>
+      
+
+      <div class="post">
+  <h1 class="post-title">Continuous deployment with AWS lambda</h1>
+  <span class="post-date">01 July 2018</span>
+  
+
+<div class="post-categories">
+  Categories:
+  
+    
+
+    <a class="badge badge-warning" href="https://tech.adriant.io/category/aws">aws</a>
+  
+</div>
+
+<div class="post-tags">
+  Tags:
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/lambda">lambda</a>
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/python">python</a>
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/cd">cd</a>
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/continuous">continuous</a>
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/deployment">deployment</a>
+  
+</div>
+<br/>
+
+  <p>AWS lambda and the serverless paradigm are great. Abstracting away machines, platforms and environments allows developers to focus on code, which is a magical thing. For code that runs infrequently, the cost savings can be significant, since lambda eliminates the need for a dedicated, always-on host.</p>
+
+<p>But in spite of this, developing on lambda is not without its challenges. I’ve twice run into a situation where a project that runs fine on my Macbook fails to run on lambda. The first was due to a dependency on <a href="https://pandas.pydata.org/">Python Pandas</a> and the second time was because of <a href="https://pythonhosted.org/pyquery/">PyQuery</a>.</p>
+
+<p>According to this <a href="https://stackoverflow.com/questions/36054976/pandas-aws-lambda">Stackoverflow post</a>, static libraries need to be compiled on an EC2 Amazon Linux machine in order to run on lambda, which is pretty inconvenient. It would be neat if lambda could automatically install dependencies via the <strong>package.json</strong> file for Node or <strong>requirements.txt</strong> for Python.</p>
+
+<p>In any case, I ended up setting up my own CD pipeline to take care of this very task. Keep reading if you’d like to learn how to incorporate this into your own CI/CD pipeline.</p>
+
+<a class="anchor" id="read-more"></a>
+
+<h2 id="overview">Overview</h2>
+<p>Python seems to be the most popular language with AWS lambda, so for this tutorial we’re going to assume our lambda is written for Python 2.7.</p>
+
+<p>We’ll start by setting up a git repository on AWS codecommit, and configuring codepipeline to trigger a build on codebuild whenever code is pushed to the repo. The build will be responsible for the following actions:</p>
+
+<ol>
+  <li>Download the source code</li>
+  <li>Set up a virtual environment</li>
+  <li>Install the requirements.txt</li>
+  <li>Create a zip file containing all the code needed to run our lambda function</li>
+  <li>Upload the zip file to Amazon S3 (optional)</li>
+  <li>Publish the new lambda code</li>
+</ol>
+
+<h2 id="setup">Setup</h2>
+
+<h3 id="create-the-codecommit-repository">Create the codecommit repository</h3>
+<p>Head over to Amazon codecommit and create a repository. You can skip configuring email notifications. Get the clone url from the console:
+<a href="/assets/img/codecommit-clone-url.png"><img src="/assets/img/codecommit-clone-url.png" /></a></p>
+
+<p>You may need to configure SSH access, click <a href="https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-https-unixes.html?icmpid=docs_acc_console_connect#setting-up-https-unixes-account">here</a> for more details. Create a directory for our project and initialize the git repo.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">mkdir </span>my-project
+<span class="nv">$ </span><span class="nb">cd </span>my-project
+<span class="nv">$ </span>git init
+Initialized empty Git repository <span class="k">in</span> /Users/adrian.tengamnuay/Projects/personal-projects/my-project/.git/
+
+<span class="nv">$ </span>git remote add origin ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/my-sample-repo
+</code></pre></div></div>
+
+<p>Create your first commit and push to master to verify that the repository has been set up correctly.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>git commit <span class="nt">--allow-empty</span> <span class="nt">-m</span> <span class="s2">"My first commit"</span>
+<span class="o">[</span>master <span class="o">(</span>root-commit<span class="o">)</span> 27ccb3e] My first commit
+
+<span class="nv">$ </span>git push <span class="nt">-u</span> origin master
+Counting objects: 2, <span class="k">done</span><span class="nb">.</span>
+Writing objects: 100% <span class="o">(</span>2/2<span class="o">)</span>, 176 bytes | 176.00 KiB/s, <span class="k">done</span><span class="nb">.</span>
+Total 2 <span class="o">(</span>delta 0<span class="o">)</span>, reused 0 <span class="o">(</span>delta 0<span class="o">)</span>
+To ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/my-sample-repo
+ <span class="k">*</span> <span class="o">[</span>new branch]      master -&gt; master
+Branch <span class="s1">'master'</span> <span class="nb">set </span>up to track remote branch <span class="s1">'master'</span> from <span class="s1">'origin'</span><span class="nb">.</span>
+</code></pre></div></div>
+
+<h3 id="define-the-codebuild-project">Define the codebuild project</h3>
+<p>Head over to CodeBuild in the AWS console. Create a codebuild project with your project name and set the source provider to <strong>AWS CodeCommit</strong> and the Repository to your repository.
+<a href="/assets/img/codebuild-configure-source.png"><img src="/assets/img/codebuild-configure-source.png" /></a></p>
+
+<p>Next configure the environment to use <strong>Ubuntu</strong> OS, <strong>Python</strong> runtime, version <strong>2.7.12</strong>.</p>
+
+<p>Leave the build specification as <strong>buildspec.yml</strong> in the root directory. This is the file that we will check in to source which tells codebuild how to build the project.
+<a href="/assets/img/codebuild-configure-environment.png"><img src="/assets/img/codebuild-configure-environment.png" /></a></p>
+
+<p>For artifacts, select <strong>No artifacts</strong>. Leave the rest of the fields as is and save the project.</p>
+
+<h3 id="create-a-codepipeline-project-to-trigger-the-build-on-code-push">Create a codepipeline project to trigger the build on code push</h3>
+<p>On AWS CodePipeline create a new project. Configure source to use our codecommit repository and the <strong>master</strong> branch.
+<a href="/assets/img/codepipeline-configure-source.png"><img src="/assets/img/codepipeline-configure-source.png" /></a></p>
+
+<p>Next, configure the build.
+<a href="/assets/img/codepipeline-configure-build.png"><img src="/assets/img/codepipeline-configure-build.png" /></a></p>
+
+<p>Select <strong>No deployment</strong> for the deployment step.
+<a href="/assets/img/codepipeline-configure-de.png"><img src="/assets/img/codepipeline-configure-de.png" /></a></p>
+
+<p>Create a service role for the pipeline project and save the pipeline.</p>
+
+<h3 id="test-out-the-pipeline">Test out the pipeline</h3>
+<p>To check whether our code pipeline is properly triggering a build whenever we push to our repository, I’m going to add a simple buildspec.yml file to our repository.</p>
+
+<p>The following yaml file is a template that you can use to organize build stages for your project. For now I’m just going to do a simple <code class="language-plaintext highlighter-rouge">echo Hello from CodeBuild</code> command and leave everything else commented out.</p>
+
+<p><code class="language-plaintext highlighter-rouge">buildspec.yml</code></p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="m">0.2</span>
+
+<span class="c1">#env:</span>
+  <span class="c1">#variables:</span>
+     <span class="c1"># key: "value"</span>
+     <span class="c1"># key: "value"</span>
+  <span class="c1">#parameter-store:</span>
+     <span class="c1"># key: "value"</span>
+     <span class="c1"># key: "value"</span>
+
+<span class="na">phases</span><span class="pi">:</span>
+  <span class="c1">#install:</span>
+    <span class="c1">#commands:</span>
+      <span class="c1"># - command</span>
+      <span class="c1"># - command</span>
+  <span class="c1">#pre_build:</span>
+    <span class="c1">#commands:</span>
+      <span class="c1"># - command</span>
+      <span class="c1"># - command</span>
+  <span class="na">build</span><span class="pi">:</span>
+    <span class="na">commands</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">echo Hello from CodeBuild</span>
+      <span class="c1"># - command</span>
+      <span class="c1"># - command</span>
+  <span class="c1">#post_build:</span>
+    <span class="c1">#commands:</span>
+      <span class="c1"># - command</span>
+      <span class="c1"># - command</span>
+<span class="c1">#artifacts:</span>
+  <span class="c1">#files:</span>
+    <span class="c1"># - location</span>
+    <span class="c1"># - location</span>
+  <span class="c1">#discard-paths: yes</span>
+  <span class="c1">#base-directory: location</span>
+<span class="c1">#cache:</span>
+  <span class="c1">#paths:</span>
+    <span class="c1"># - paths</span>
+</code></pre></div></div>
+
+<p>Commit the file and push to master.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>git add buildspec.yml
+<span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"Add a buildspec.yml file"</span>
+<span class="o">[</span>master dd4b5b1] Add a buildspec.yml file
+ 1 file changed, 37 insertions<span class="o">(</span>+<span class="o">)</span>
+ create mode 100644 buildspec.yml
+
+<span class="nv">$ </span>git push                                                                                           master
+Counting objects: 3, <span class="k">done</span><span class="nb">.</span>
+Delta compression using up to 8 threads.
+Compressing objects: 100% <span class="o">(</span>2/2<span class="o">)</span>, <span class="k">done</span><span class="nb">.</span>
+Writing objects: 100% <span class="o">(</span>3/3<span class="o">)</span>, 454 bytes | 454.00 KiB/s, <span class="k">done</span><span class="nb">.</span>
+Total 3 <span class="o">(</span>delta 0<span class="o">)</span>, reused 0 <span class="o">(</span>delta 0<span class="o">)</span>
+To ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/my-sample-repo
+   27ccb3e..dd4b5b1  master -&gt; master
+</code></pre></div></div>
+
+<p>Head over to codepipeline to validate that the push event has been received.
+<a href="/assets/img/codepipeline-codecommit-in-progress.png"><img src="/assets/img/codepipeline-codecommit-in-progress.png" /></a></p>
+
+<p>Once the <strong>Source</strong> stage has completed, the status of the <strong>Build</strong> stage should change to in progress.
+<a href="/assets/img/codepipeline-codebuild-in-progress.png"><img src="/assets/img/codepipeline-codebuild-in-progress.png" /></a></p>
+
+<p>Click on the <strong>AWS CodeBuild</strong> link to be redirected to the build history page. You should see the latest build for your project. Click on the build for more details. You should see a summary of the build phase outputs and a detailed log as well. Verify that the command <code class="language-plaintext highlighter-rouge">echo Hello from CodeBuild</code> was successfully run.
+<a href="/assets/img/codebuild-build-summary.png"><img src="/assets/img/codebuild-build-summary.png" /></a></p>
+
+<p>Now our builds will automatically kick off each time we push the code to the master branch, and we can easily control how we build our project simply by making changes to the buildspec.yml file.</p>
+
+<h3 id="update-the-codebuild-role-policies">Update the CodeBuild role policies</h3>
+<p>We need to update our build role with the proper IAM permissions in order for the build to upload code to lambda. Take note of the build role associated with your build project and head over to the IAM console.</p>
+
+<p>For convenience, I’m going to attach the Amazon managed <strong>AWSLambdaFullAccess</strong> policy to our build role. In general however, Amazon recommends you provide the least amount of access that is required by your resources.</p>
+
+<h3 id="create-an-s3-bucket-for-storing-lambda-code-optional">Create an S3 bucket for storing lambda code (optional)</h3>
+<p>The archive containing lambda code can either be uploaded directly to lambda or uploaded to S3 first and then referenced by lambda. The latter approach seems to be more reliable in my experience, but you can opt to skip this step and upload directly to lambda if you prefer.</p>
+
+<p>To create an s3 bucket using the aws commandline</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws s3 mb s3://adrians-lambda-code-bucket
+make_bucket: adrians-lambda-code-bucket
+</code></pre></div></div>
+
+<h3 id="create-an-empty-lambda-function">Create an empty lambda function</h3>
+<p>In order to update a lambda function we need to create one first.</p>
+
+<p>Go to the lambda console and select <strong>Create function</strong>. Choose <strong>Python 2.7</strong> for the runtime and create a role from template, choosing <em>Simple Microservice Permissions</em> as your policy template.
+<a href="/assets/img/create-sample-lambda.png"><img src="/assets/img/create-sample-lambda.png" /></a></p>
+
+<p>Now we will be able to update this function from the command line.</p>
+
+<h2 id="a-sample-python-project">A sample Python project</h2>
+<p>Let’s define a simple project that uses some external packages. I’m going to be importing <code class="language-plaintext highlighter-rouge">python requests</code> since it is a common and popular choice.</p>
+
+<p>First we set up our local dev environment. For this you need <code class="language-plaintext highlighter-rouge">virtualenv</code>, which you can install with <code class="language-plaintext highlighter-rouge">pip install virtualenv</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>virtualenv <span class="nb">env
+</span>New python executable <span class="k">in</span> /Users/adrian.tengamnuay/Projects/personal-projects/my-project/env/bin/python
+Installing setuptools, pip, wheel...done.
+
+<span class="nv">$ </span><span class="nb">.</span> <span class="nb">env</span>/bin/activate
+<span class="o">(</span><span class="nb">env</span><span class="o">)</span> <span class="err">$</span>
+</code></pre></div></div>
+<p>Now any pip install commands we execute will be local to our project, and won’t clutter the user or global python site packages. Next, install <code class="language-plaintext highlighter-rouge">python requests</code> (note that your output may differ from mine).</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span><span class="nb">env</span><span class="o">)</span> <span class="nv">$ </span>pip <span class="nb">install </span>requests
+Collecting requests
+  Using cached https://files.pythonhosted.org/packages/65/47/7e02164a2a3db50ed6d8a6ab1d6d60b69c4c3fdf57a284257925dfc12bda/requests-2.19.1-py2.py3-none-any.whl
+Collecting certifi&gt;<span class="o">=</span>2017.4.17 <span class="o">(</span>from requests<span class="o">)</span>
+  Using cached https://files.pythonhosted.org/packages/7c/e6/92ad559b7192d846975fc916b65f667c7b8c3a32bea7372340bfe9a15fa5/certifi-2018.4.16-py2.py3-none-any.whl
+Collecting chardet&lt;3.1.0,&gt;<span class="o">=</span>3.0.2 <span class="o">(</span>from requests<span class="o">)</span>
+  Using cached https://files.pythonhosted.org/packages/bc/a9/01ffebfb562e4274b6487b4bb1ddec7ca55ec7510b22e4c51f14098443b8/chardet-3.0.4-py2.py3-none-any.whl
+Collecting urllib3&lt;1.24,&gt;<span class="o">=</span>1.21.1 <span class="o">(</span>from requests<span class="o">)</span>
+  Using cached https://files.pythonhosted.org/packages/bd/c9/6fdd990019071a4a32a5e7cb78a1d92c53851ef4f56f62a3486e6a7d8ffb/urllib3-1.23-py2.py3-none-any.whl
+Collecting idna&lt;2.8,&gt;<span class="o">=</span>2.5 <span class="o">(</span>from requests<span class="o">)</span>
+  Using cached https://files.pythonhosted.org/packages/4b/2a/0276479a4b3caeb8a8c1af2f8e4355746a97fab05a372e4a2c6a6b876165/idna-2.7-py2.py3-none-any.whl
+Installing collected packages: certifi, chardet, urllib3, idna, requests
+Successfully installed certifi-2018.4.16 chardet-3.0.4 idna-2.7 requests-2.19.1 urllib3-1.23
+</code></pre></div></div>
+
+<p>We’re going to create a requirements.txt file with our requirements so that codebuild (or anyone else who wants to work on this project) can exactly replicate the development environment, without having to check in dependent packages into source.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span><span class="nb">env</span><span class="o">)</span> <span class="nv">$ </span>pip freeze <span class="o">&gt;</span> requirements.txt
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">requirements.txt</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>certifi==2018.4.16
+chardet==3.0.4
+idna==2.7
+requests==2.19.1
+urllib3==1.23
+</code></pre></div></div>
+
+<p><strong>Important:</strong> Make sure to update your requirements.txt file whenever you add or remove packages from your project.</p>
+
+<p>Here’s a simple lambda handler which makes use of the requests library. I like to add the main function so I can test locally.</p>
+
+<p><code class="language-plaintext highlighter-rouge">lambda_function.py</code></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="k">def</span> <span class="nf">lambda_handler</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+  <span class="n">res</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'https://google.com'</span><span class="p">)</span>
+  <span class="k">print</span> <span class="n">res</span><span class="p">.</span><span class="n">text</span>
+  <span class="k">return</span> <span class="n">res</span><span class="p">.</span><span class="n">text</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
+  <span class="n">lambda_handler</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Let’s also add a <code class="language-plaintext highlighter-rouge">.gitignore</code> file to ignore the virtual environment folder, and any compiled python files.</p>
+
+<p><code class="language-plaintext highlighter-rouge">.gitignore</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>env
+*.pyc
+</code></pre></div></div>
+
+<p>The last thing for us to do is update our buildspec.yml file which will tell codebuild how to build our project and deploy it to lambda. Take a look and review the new build spec.</p>
+
+<p><code class="language-plaintext highlighter-rouge">buildspec.yml</code></p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="m">0.2</span>
+<span class="na">env</span><span class="pi">:</span>
+  <span class="na">variables</span><span class="pi">:</span>
+    <span class="na">LAMBDA_NAME</span><span class="pi">:</span> <span class="s2">"</span><span class="s">my-project-lambda"</span>
+    <span class="na">BUCKET_NAME</span><span class="pi">:</span> <span class="s2">"</span><span class="s">adrians-lambda-code-bucket"</span>
+<span class="na">phases</span><span class="pi">:</span>
+  <span class="na">install</span><span class="pi">:</span>
+    <span class="na">commands</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">apt-get update</span>
+      <span class="pi">-</span> <span class="s">apt-get install zip</span>
+  <span class="na">pre_build</span><span class="pi">:</span>
+    <span class="na">commands</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">pip install virtualenv</span>
+      <span class="pi">-</span> <span class="s">virtualenv env</span>
+      <span class="pi">-</span> <span class="s">. env/bin/activate</span>
+      <span class="pi">-</span> <span class="s">pip install -r requirements.txt</span>
+  <span class="na">build</span><span class="pi">:</span>
+    <span class="na">commands</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">ISO_DATE=$(date +%Y-%m-%dT%H:%M:%S%z)</span>
+      <span class="pi">-</span> <span class="s">TMP_DIR="dist-$ISO_DATE"</span>
+      <span class="pi">-</span> <span class="s">mkdir $TMP_DIR</span>
+      <span class="pi">-</span> <span class="s">cp *.py $TMP_DIR</span>
+      <span class="pi">-</span> <span class="s">cp -rf env/lib/python2.7/site-packages/* $TMP_DIR</span>
+      <span class="pi">-</span> <span class="s">cd $TMP_DIR; zip -r ../dist.zip *</span>
+      <span class="pi">-</span> <span class="s">cd ..</span>
+      <span class="pi">-</span> <span class="s">aws s3 cp dist.zip s3://$BUCKET_NAME/$LAMBDA_NAME/dist.zip</span>
+      <span class="pi">-</span> <span class="s">aws lambda update-function-code --function-name $LAMBDA_NAME --s3-bucket $BUCKET_NAME --s3-key $LAMBDA_NAME/dist.zip --publish</span>
+</code></pre></div></div>
+
+<p>The build spec first installs the zip utility, and then installs the python packages to a virtual environment specified by requirements.txt.</p>
+
+<p>During the build phase, a temporary folder named something like <code class="language-plaintext highlighter-rouge">dist-2018-07-01T19:25:13-0700</code> is created. The python files and installed packages are copied over to this folder. These files are then zipped into the <code class="language-plaintext highlighter-rouge">dist.zip</code> archive and the folder is removed.</p>
+
+<p>Finally, the zip file containing our lambda code is uploaded to S3, and we update and publish our new lambda function by passing in the S3 location.</p>
+
+<p>If you did not create an S3 bucket for storing your lambda code, you can upload the zip file directly to lambda by replacing the last two AWS commands with</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="s">aws lambda update-function-code --function-name $LAMBDA_NAME --zip-file fileb://dist.zip --publish</span>
+</code></pre></div></div>
+
+<p>Now push the changes and cross your fingers…</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span><span class="nb">env</span><span class="o">)</span> <span class="nv">$ </span>git add <span class="nb">.</span>
+<span class="o">(</span><span class="nb">env</span><span class="o">)</span> <span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"A sample python lambda function"</span>
+<span class="o">[</span>master 3a9bc2d] A sample python lambda <span class="k">function
+ </span>4 files changed, 40 insertions<span class="o">(</span>+<span class="o">)</span>, 37 deletions<span class="o">(</span>-<span class="o">)</span>
+ create mode 100644 .gitignore
+ rewrite buildspec.yml <span class="o">(</span>92%<span class="o">)</span>
+ create mode 100644 lambda_function.py
+ create mode 100644 requirements.txt
+
+<span class="o">(</span><span class="nb">env</span><span class="o">)</span> <span class="nv">$ </span>git push
+Counting objects: 6, <span class="k">done</span><span class="nb">.</span>
+Delta compression using up to 8 threads.
+Compressing objects: 100% <span class="o">(</span>5/5<span class="o">)</span>, <span class="k">done</span><span class="nb">.</span>
+Writing objects: 100% <span class="o">(</span>6/6<span class="o">)</span>, 948 bytes | 948.00 KiB/s, <span class="k">done</span><span class="nb">.</span>
+Total 6 <span class="o">(</span>delta 0<span class="o">)</span>, reused 0 <span class="o">(</span>delta 0<span class="o">)</span>
+To ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/my-sample-repo
+   c8f5ea5..3a9bc2d  master -&gt; master
+</code></pre></div></div>
+
+<p>This will kick off the build which, if everything goes successfully, will automatically update and publish your new lambda code.</p>
+
+<p>Test out your lambda function using the <code class="language-plaintext highlighter-rouge">invoke</code> command.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws lambda invoke <span class="nt">--function-name</span> my-project-lambda response.txt
+<span class="o">{</span>
+  <span class="s2">"ExecutedVersion"</span>: <span class="s2">"</span><span class="nv">$LATEST</span><span class="s2">"</span>,
+  <span class="s2">"StatusCode"</span>: 200
+<span class="o">}</span>
+
+<span class="nv">$ </span><span class="nb">cat </span>response.txt
+<span class="s2">"&lt;!doctype html&gt;&lt;html itemscope=</span><span class="se">\"\"</span><span class="s2"> itemtype=</span><span class="se">\"</span><span class="s2">http://schema.org/WebPage</span><span class="se">\"</span><span class="s2"> lang=</span><span class="se">\"</span><span class="s2">en</span><span class="se">\"</span><span class="s2">&gt;&lt;head&gt;&lt;meta content=</span><span class="se">\"</span><span class="s2">Search the world's information ...
+</span></code></pre></div></div>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>So there you have it, a continuous deployment process for python projects running on AWS lambda. I’m currently using the same setup for one of my own personal projects, and it works great.</p>
+
+<p>One thought I had was how can we incorporate cloudformation into this sort of continuous deploy pipeline.</p>
+
+<p>Cloud formation manages AWS resources through a yaml file similar to the buildspec.yml used by CodeBuild, but where buildspec.yml has an <em>imperative</em> structure, cloudformation templates have a <em>declarative</em> one. This means that for buildspec.yml we list out each of steps that we want run, but in a cloudformation template, we simply list each resource and the state we’d like it to be in. AWS then executes whatever steps are necessary to get those resources to the requested states.</p>
+
+<p>Something to look into next time. I hope you enjoyed this tutorial, please let me know what you think in the comments below.</p>
+
+<p>Happy coding!</p>
+
+</div>
+
+<div class="related">
+
+<h2>Related Posts</h2>
+
+
+
+
+
+<ul class="related-posts">
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2019/10/20/getting-started-with-aws-lambda/">
+        Getting started with AWS Lambda Functions
+        <small>20 Oct 2019</small>
+      </a>
+    </li>
+    
+    
+  
+
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2019/10/10/getting-started-with-the-aws-cli/">
+        Getting started with the AWS Command-Line Interface
+        <small>10 Oct 2019</small>
+      </a>
+    </li>
+    
+    
+  
+
+
+
+  
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2018/05/10/hosting-jekyll-site-on-s3/">
+        Hosting a static Jekyll website on Amazon S3
+        <small>10 May 2018</small>
+      </a>
+    </li>
+    
+    
+      
+</ul>
+
+</div>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+this.page.url = "https://tech.adriant.io/aws/2018/07/01/continuous-deployment-with-aws-lambda/";
+this.page.identifier = "/aws/2018/07/01/continuous-deployment-with-aws-lambda/";
+};
+(function() {
+var d = document, s = d.createElement('script');
+s.src = "https://adriant-io.disqus.com/embed.js";
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        <p>Copyright &copy; 2021 Adrian Teng-Amnuay</p>
+      </div>
+
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-117405938-7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-117405938-7');
+</script>
+<!-- End Google Analytics -->
+
+      
+    
+  </body>
+</html>
+
+
+  
+
+
+
+
+
+
+

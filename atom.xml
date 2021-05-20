@@ -1,0 +1,845 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://tech.adriant.io/atom.xml" rel="self" type="application/atom+xml" /><link href="https://tech.adriant.io/" rel="alternate" type="text/html" /><updated>2021-05-20T18:01:13+00:00</updated><id>https://tech.adriant.io/atom.xml</id><title type="html">technology</title><subtitle>a software development blog with a focus on devops and cloud infrastructure</subtitle><author><name>Adrian Teng-Amnuay</name><email>pumpadrian@gmail.com</email></author><entry><title type="html">Getting started with AWS Lambda Functions</title><link href="https://tech.adriant.io/aws/2019/10/20/getting-started-with-aws-lambda/" rel="alternate" type="text/html" title="Getting started with AWS Lambda Functions" /><published>2019-10-20T00:00:00+00:00</published><updated>2019-10-20T00:00:00+00:00</updated><id>https://tech.adriant.io/aws/2019/10/20/getting-started-with-aws-lambda</id><content type="html" xml:base="https://tech.adriant.io/aws/2019/10/20/getting-started-with-aws-lambda/">&lt;p&gt;AWS Lambda is Amazon’s &lt;em&gt;function as a service&lt;/em&gt; product. It’s a service that lets you package and run code without having to provision or manage servers. With Lambda, you only pay when your code is running. By contrast, you pay for managed servers like EC2 as long as they are running, even while they are not serving any requests.&lt;/p&gt;
+
+&lt;p&gt;To begin with AWS Lambda, you first write some code in one of the supported languages, you package and upload this code to Lambda, and now you have a &lt;em&gt;Lambda function&lt;/em&gt; that can be run on demand. The Lambda function can be triggered from other AWS services such as SNS, SQS, API Gateway, and Cloudwatch events. Another benefit of Lambda is that it scales automatically based on the number of requests.&lt;/p&gt;
+
+&lt;p&gt;In this tutorial, I’ll go over how to create and manage a Lambda function, as well as how to trigger the lambda function from different event sources. This tutorial assumes you know how to write some very basic code and are familiar with the AWS Console.&lt;/p&gt;
+
+&lt;p&gt;&lt;!--more--&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;create-a-lambda-function&quot;&gt;Create a Lambda Function&lt;/h2&gt;
+&lt;p&gt;Let’s start by creating a simple Lambda function. Navigate to the AWS Console and search for “Lambda”.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/aws-console-search-lambda.png&quot; alt=&quot;AWS Console searchbar Lambda&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Please make a note of the region in which you create your lambda function. AWS resources are generally tied to a specific region and Lambda is no exception.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/aws-console-navbar-region.png&quot; alt=&quot;AWS Console navbar region&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Next select the &lt;em&gt;Create function&lt;/em&gt; button.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-dashboard-create-function-button.png&quot; alt=&quot;Lambda dashboard create function button&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In this tutorial we’ll be selecting &lt;em&gt;Author from Scratch&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Other options include &lt;em&gt;Use a blueprint&lt;/em&gt; which lets you browse the repository of Lambda functions to use as a starter template, and &lt;em&gt;Serverless App repository&lt;/em&gt;. The &lt;em&gt;Serverless App repository&lt;/em&gt; contains &lt;strong&gt;CloudFormation&lt;/strong&gt; templates which often define, in addition to one or more Lambda functions, a group of AWS resources to create. &lt;strong&gt;CloudFormation&lt;/strong&gt; is outside the scope of this tutorial.&lt;/p&gt;
+
+&lt;p&gt;Fill out the form by giving your function a name and selecting the runtime language of your choice. For the execution role, we’ll create a new one with basic permissions.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-dashboard-create-form.png&quot; alt=&quot;Lambda dashboard create function form&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;An execution role is an &lt;em&gt;IAM Role&lt;/em&gt; that the Lambda function assumes whenever it runs. This role has permissions tied to it so you can limit the scope of what the lambda function does. There are three options:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;Create a new role with basic Lambda permissions&lt;/em&gt;: Lambda creates a new IAM role with minimal permissions, ie. ability to send CloudWatch logs, for your Lambda. This is the one we’ve chosen for convenience.&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;Use an existing role&lt;/em&gt;: Select a role which already exists.&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;Create a new role from AWS policy templates&lt;/em&gt;: Creates an IAM role from several cookie-cutter policy templates.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Click &lt;em&gt;Create function&lt;/em&gt; and wait for the lambda function to be created.&lt;/p&gt;
+
+&lt;h2 id=&quot;getting-to-know-the-ui&quot;&gt;Getting to know the UI&lt;/h2&gt;
+
+&lt;h3 id=&quot;the-designer&quot;&gt;The Designer&lt;/h3&gt;
+
+&lt;p&gt;Once your Lambda function has been created, you should be redirected to the the following page. The designer section gives you a visualization of &lt;em&gt;Triggers&lt;/em&gt; on the left, which are events that can trigger your lambda function to run, and services that your Lambda function has permission to interact with on the right.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-ui-designer-section.png&quot; alt=&quot;Lambda UI designer section&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In this case, our Lambda function currently has no associated triggers, and only has permission to send logs to Cloudwatch. The services that your Lambda function has permission to interact with, is defined by the IAM role that was associated with it during creation time. The Lambda function’s execution role can be updated even after the Lambda function is created. It can also be replaced with a different role.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-in-browser-code-editor&quot;&gt;The In-browser code editor&lt;/h3&gt;
+
+&lt;p&gt;Lambda supports an in-browser code editor for convenience. You can update code, save your changes, and test them out as you go. While the in-browser editor is convenient for trying out Lambda, or working with smaller functions, it’s not recommended for larger projects because there are limitations around deployment package size.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-ui-code-section.png&quot; alt=&quot;Lambda UI code section&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;test-the-function&quot;&gt;Test the function&lt;/h3&gt;
+
+&lt;h4 id=&quot;create-a-test-event&quot;&gt;Create a test event&lt;/h4&gt;
+&lt;p&gt;Our lambda has already been set up to return an object with &lt;em&gt;statusCode: 200&lt;/em&gt; and &lt;em&gt;body: “Hello from Lambda!”&lt;/em&gt;, so let’s try running it manually. Click on the &lt;em&gt;Test&lt;/em&gt; button on the Lambda navigation bar.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-ui-test-button.png&quot; alt=&quot;Lambda UI test button&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This will open up a form where you can manage and create test events. When your lambda function runs, the event’s contents are passed to the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;event&lt;/code&gt; argument in your lambda function’s handler.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-create-test-hello-event.png&quot; alt=&quot;Lambda create test event form&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Every service that triggers Lambda passes the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;event&lt;/code&gt; argument with relevant information. For example if a Cloudwatch metric triggered your function, it would pass the metric value and threshold that caused the event to trigger. In this way, test events can be used to simulate different events, and you can test that your Lambda function behaves correctly in each scenario.&lt;/p&gt;
+
+&lt;h4 id=&quot;trigger-the-test-event&quot;&gt;Trigger the test event&lt;/h4&gt;
+
+&lt;p&gt;Once you’ve created the test &lt;em&gt;HelloEvent&lt;/em&gt;, we can now trigger the lambda function with it. Make sure &lt;em&gt;HelloEvent&lt;/em&gt; is selected and click &lt;em&gt;Test&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-select-test-event-and-run-test.png&quot; alt=&quot;Lambda select HelloEvent and click test&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;view-the-log-output&quot;&gt;View the log output&lt;/h4&gt;
+
+&lt;p&gt;You should see that the lambda function executed and succeeded. You can view the logs by expanding the execution details at the top. Clicking &lt;em&gt;logs&lt;/em&gt; will take you to the Cloudwatch dashboard where you can view historical logs across multiple runs of your Lambda function.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-execution-log-details.png&quot; alt=&quot;Lambda execution log details&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You can also view logs in the editor’s results section.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-execution-editor-results.png&quot; alt=&quot;Lambda execution editor results&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;print-out-the-event&quot;&gt;Print out the event&lt;/h4&gt;
+
+&lt;p&gt;Let’s update the Lambda function to print out the argument event. Update the function code like&lt;/p&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;json&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lambda_handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;event&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Event: {}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;event&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;# Add this line
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;'statusCode'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;'body'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dumps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'Hello from Lambda!'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Click &lt;em&gt;Save&lt;/em&gt; and run the function again with the &lt;em&gt;HelloEvent&lt;/em&gt; test event. You should now see the event being printed out in the log output.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;START RequestId: 9a14a9d0-e6a4-4761-aeb6-e572ef6971e7 Version: $LATEST
+Event: {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+END RequestId: 9a14a9d0-e6a4-4761-aeb6-e572ef6971e7
+REPORT RequestId: 9a14a9d0-e6a4-4761-aeb6-e572ef6971e7	Duration: 19.07 ms	Billed Duration: 100 ms	Memory Size: 128 MB	Max Memory Used: 56 MB	Init Duration: 108.39 ms
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;environtment-variables&quot;&gt;Environtment Variables&lt;/h3&gt;
+
+&lt;p&gt;Environment variables are useful for parameterizing things like database connection strings, &lt;strong&gt;Arn&lt;/strong&gt; references to other AWS resources, environment specific settings, or really anything you want to control without having to make code changes and redeploy your function.&lt;/p&gt;
+
+&lt;h3 id=&quot;basic-settings&quot;&gt;Basic Settings&lt;/h3&gt;
+
+&lt;p&gt;I’ll be skipping over a few of the other sections but I wanted to make sure to cover the &lt;em&gt;Basic Settings&lt;/em&gt; section.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-ui-basic-settings.png&quot; alt=&quot;Lambda UI Basic Settings&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In this section you define how much &lt;em&gt;Memory&lt;/em&gt; your Lambda function requires. It receives CPU proportional to the amount of memory that you choose. You also specify a &lt;em&gt;Timeout&lt;/em&gt;, which is used by Amazon to kill your function if it hasn’t finished processing within the set timeout.&lt;/p&gt;
+
+&lt;p&gt;These fields are relevant because with Lambda, you are billed either by how many executions or by how many &lt;strong&gt;GB-seconds&lt;/strong&gt; you use per month. For more information on pricing, see &lt;a href=&quot;https://aws.amazon.com/lambda/pricing/&quot;&gt;https://aws.amazon.com/lambda/pricing/&lt;/a&gt;. And don’t worry, at the time of writing, this tutorial qualifies under the free-tier.&lt;/p&gt;
+
+&lt;h2 id=&quot;triggers&quot;&gt;Triggers&lt;/h2&gt;
+
+&lt;p&gt;Now that we have a basic understanding of Lambda and a working function, let’s try attaching a few different triggers to automatically kick off a function execution instead of manually triggering it with a &lt;em&gt;TestEvent&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;cloudwatch-scheduled-event&quot;&gt;Cloudwatch Scheduled Event&lt;/h3&gt;
+&lt;p&gt;Cloudwatch scheduled events are one of the simplest types of triggers. A cloudwatch scheduled event, as the name implies, simply triggers on a preset schedule. Let’s start by creating a simple cloudwatch scheduled event that triggers our function once a day.&lt;/p&gt;
+
+&lt;p&gt;In the &lt;em&gt;Designer&lt;/em&gt; section, click &lt;em&gt;Add Trigger&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-add-trigger-button.png&quot; alt=&quot;Lambda add trigger button&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Next, select &lt;em&gt;CloudWatch Events&lt;/em&gt; from the dropdown and fill in the form like so:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-trigger-cloudwatch-event-create-rule-form.png&quot; alt=&quot;Lambda create cloudwatch event trigger&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You should now see the &lt;em&gt;CloudWatch Events&lt;/em&gt; trigger summary in the designer view.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/lambda-designer-summary-with-cw-event.png&quot; alt=&quot;Lambda designer cloudwatch trigger&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;To see the cloudwatch scheduled event in action, you might want to change the schedule to something more frequent like once a minute.&lt;/p&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+&lt;p&gt;In this tutorial we learned how to do the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Create a lambda function from scratch with basic permissions&lt;/li&gt;
+  &lt;li&gt;Update code using the in-browser code editor&lt;/li&gt;
+  &lt;li&gt;View log output for a lambda function execution&lt;/li&gt;
+  &lt;li&gt;Attach an event trigger such as CloudWatch scheduled events&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To delete your lambda function, navigate back to the functions dashboard and click on &lt;em&gt;Actions&lt;/em&gt; -&amp;gt; &lt;em&gt;Delete&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/delete-lambda-function.png&quot; alt=&quot;Delete a lambda function&quot; /&gt;&lt;/p&gt;</content><author><name>Adrian Teng-Amnuay</name><email>pumpadrian@gmail.com</email></author><category term="aws" /><category term="lambda" /><summary type="html">AWS Lambda is Amazon’s function as a service product. It’s a service that lets you package and run code without having to provision or manage servers. With Lambda, you only pay when your code is running. By contrast, you pay for managed servers like EC2 as long as they are running, even while they are not serving any requests. To begin with AWS Lambda, you first write some code in one of the supported languages, you package and upload this code to Lambda, and now you have a Lambda function that can be run on demand. The Lambda function can be triggered from other AWS services such as SNS, SQS, API Gateway, and Cloudwatch events. Another benefit of Lambda is that it scales automatically based on the number of requests. In this tutorial, I’ll go over how to create and manage a Lambda function, as well as how to trigger the lambda function from different event sources. This tutorial assumes you know how to write some very basic code and are familiar with the AWS Console.</summary></entry><entry><title type="html">Getting started with the AWS Command-Line Interface</title><link href="https://tech.adriant.io/aws/2019/10/10/getting-started-with-the-aws-cli/" rel="alternate" type="text/html" title="Getting started with the AWS Command-Line Interface" /><published>2019-10-10T00:00:00+00:00</published><updated>2019-10-10T00:00:00+00:00</updated><id>https://tech.adriant.io/aws/2019/10/10/getting-started-with-the-aws-cli</id><content type="html" xml:base="https://tech.adriant.io/aws/2019/10/10/getting-started-with-the-aws-cli/">&lt;p&gt;In this tutorial you’ll install the AWS command line interface and learn how to set up an IAM user with programmatic access to AWS resources. This tutorial assumes you have basic command-line knowledge on either Mac or a unix-like operating system.&lt;/p&gt;
+
+&lt;p&gt;&lt;!--more--&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;installing-the-aws-cli-command-line-interface&quot;&gt;Installing the AWS CLI (Command-Line Interface)&lt;/h2&gt;
+
+&lt;p&gt;Make sure you have &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;python&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pip&lt;/code&gt; installed. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pip&lt;/code&gt; is a tool for installing python packages. You can check that you have them installed using these commands.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;python &lt;span class=&quot;nt&quot;&gt;--version&lt;/span&gt;
+Python 2.7.16
+
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip &lt;span class=&quot;nt&quot;&gt;--version&lt;/span&gt;
+pip 19.1.1 from /usr/local/lib/python2.7/site-packages/pip &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;python 2.7&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Next install the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;awscli&lt;/code&gt; package. Note that your output may look different from mine.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--user&lt;/span&gt; awscli
+DEPRECATION: Python 2.7 will reach the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 won&lt;span class=&quot;s1&quot;&gt;'t be maintained after that date. A future version of pip will drop support for Python 2.7.
+Requirement already satisfied: awscli in /usr/local/lib/python2.7/site-packages (1.16.72)
+Requirement already satisfied: docutils&amp;gt;=0.10 in /usr/local/lib/python2.7/site-packages (from awscli) (0.14)
+Requirement already satisfied: botocore==1.12.62 in /usr/local/lib/python2.7/site-packages (from awscli) (1.12.62)
+Requirement already satisfied: PyYAML&amp;lt;=3.13,&amp;gt;=3.10 in /usr/local/lib/python2.7/site-packages (from awscli) (3.13)
+Requirement already satisfied: s3transfer&amp;lt;0.2.0,&amp;gt;=0.1.12 in /usr/local/lib/python2.7/site-packages (from awscli) (0.1.13)
+Requirement already satisfied: rsa&amp;lt;=3.5.0,&amp;gt;=3.1.2 in /usr/local/lib/python2.7/site-packages (from awscli) (3.4.2)
+Requirement already satisfied: colorama&amp;lt;=0.3.9,&amp;gt;=0.2.5 in /usr/local/lib/python2.7/site-packages (from awscli) (0.3.9)
+Requirement already satisfied: urllib3&amp;lt;1.25,&amp;gt;=1.20; python_version == &quot;2.7&quot; in /usr/local/lib/python2.7/site-packages (from botocore==1.12.62-&amp;gt;awscli) (1.24.1)
+Requirement already satisfied: jmespath&amp;lt;1.0.0,&amp;gt;=0.7.1 in /usr/local/lib/python2.7/site-packages (from botocore==1.12.62-&amp;gt;awscli) (0.9.3)
+Requirement already satisfied: python-dateutil&amp;lt;3.0.0,&amp;gt;=2.1; python_version &amp;gt;= &quot;2.7&quot; in /usr/local/lib/python2.7/site-packages (from botocore==1.12.62-&amp;gt;awscli) (2.7.5)
+Requirement already satisfied: futures&amp;lt;4.0.0,&amp;gt;=2.2.0; python_version == &quot;2.6&quot; or python_version == &quot;2.7&quot; in /usr/local/lib/python2.7/site-packages (from s3transfer&amp;lt;0.2.0,&amp;gt;=0.1.12-&amp;gt;awscli) (3.2.0)
+Requirement already satisfied: pyasn1&amp;gt;=0.1.3 in /usr/local/lib/python2.7/site-packages (from rsa&amp;lt;=3.5.0,&amp;gt;=3.1.2-&amp;gt;awscli) (0.4.4)
+Requirement already satisfied: six&amp;gt;=1.5 in /usr/local/lib/python2.7/site-packages (from python-dateutil&amp;lt;3.0.0,&amp;gt;=2.1; python_version &amp;gt;= &quot;2.7&quot;-&amp;gt;botocore==1.12.62-&amp;gt;awscli) (1.10.0)
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Verify that the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;awscli&lt;/code&gt; tool was successfully installed.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws &lt;span class=&quot;nt&quot;&gt;--version&lt;/span&gt;
+aws-cli/1.16.72 Python/2.7.16 Darwin/17.7.0 botocore/1.12.62
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In order to make use of the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;awscli&lt;/code&gt; tool, you will need programmatic access keys that allow the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;awscli&lt;/code&gt; to &lt;em&gt;talk&lt;/em&gt; to the Amazon Web Services API. API stands for &lt;strong&gt;Application Program Interface&lt;/strong&gt; and Web APIs in particular have become a standard practice for enabling programmatic interaction with web services.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-an-iam-user&quot;&gt;What is an IAM User?&lt;/h2&gt;
+&lt;p&gt;In this next section, you’re going to create an &lt;strong&gt;IAM User&lt;/strong&gt; from the AWS Console. IAM stands for &lt;strong&gt;Identity and Access Management&lt;/strong&gt; and it is used extensively in AWS to allow or deny permission to resources and services.&lt;/p&gt;
+
+&lt;p&gt;When you first create an AWS account, you can only login as the &lt;strong&gt;AWS Account Root User&lt;/strong&gt;. This user has the permission to do anything and everything in your account. If you create access keys for the root user and the keys are compromised, there is no limit to what a malicious actor can do in your account, and you could wake up one morning to an AWS bill for tens of thousands of dollars.&lt;/p&gt;
+
+&lt;p&gt;It’s generally recommended to create another user or set of users with limited access, while keeping the root account credentials securely locked away. However, since IAM is beyond the scope of this tutorial, we’ll be creating a user with very permissive access for the sake of convenience. Please note this is only a slight improvement from using the root account directly and is not very secure nor recommended for a production setup.&lt;/p&gt;
+
+&lt;h3 id=&quot;create-the-iam-user&quot;&gt;Create the IAM User&lt;/h3&gt;
+&lt;p&gt;Log in to the AWS console and search for the IAM service.
+&lt;img src=&quot;/assets/img/aws-console-search-iam.png&quot; alt=&quot;AWS Console searchbar IAM&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Click on the &lt;em&gt;Users&lt;/em&gt; link.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/iam-dashboard-select-users.png&quot; alt=&quot;IAM dashboard users link&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Click on the &lt;em&gt;Add user&lt;/em&gt; button.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/iam-dashboard-add-user-button.png&quot; alt=&quot;IAM dashboard add user button&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Fill in the username and make sure to check &lt;em&gt;Programmatic access&lt;/em&gt;. Click &lt;em&gt;Next: Permissions&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/iam-create-user-page-one.png&quot; alt=&quot;Add user page one&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Click on &lt;em&gt;Attach existing policies directly&lt;/em&gt; and search for &lt;strong&gt;PowerUserAccess&lt;/strong&gt;. Select the policy and click &lt;em&gt;Next: Tags&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/attach-power-user-iam-policy.png&quot; alt=&quot;Select PowerUserAccess policy&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Skip the tags section and click &lt;em&gt;Next: Review&lt;/em&gt;. The summary should look something like this.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/iam-user-create-review.png&quot; alt=&quot;Create user summary&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The next page shows that IAM User creation was successful. The &lt;em&gt;Access Key ID&lt;/em&gt; will be displayed, but you will have to click &lt;em&gt;Show&lt;/em&gt; to display the &lt;em&gt;Secret access key&lt;/em&gt;. You will need to take note of both of these keys for CLI access.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/access-key-secret-key.png&quot; alt=&quot;Display access and secret key&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Note that for security reasons, you will not be able to look up the secret access key after this point&lt;/strong&gt;. If you end up losing access to your secret access key, you will have to create a new set of access keys, but not necessarily a new user.&lt;/p&gt;
+
+&lt;h2 id=&quot;update-the-cli-to-use-access-keys&quot;&gt;Update the CLI to use access keys&lt;/h2&gt;
+&lt;p&gt;Run the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws configure&lt;/code&gt; command which will prompt you for the access and secret key.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws configure
+AWS Access Key ID &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****************&lt;/span&gt;MBAQ]:
+AWS Secret Access Key &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****************&lt;/span&gt;1H4e]:
+Default region name &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;us-east-1]:
+Default output format &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;None]:
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;You can leave the defaults for &lt;em&gt;region&lt;/em&gt; and &lt;em&gt;output&lt;/em&gt; when prompted. Your output may look different from mine since I already have default credentials configured.&lt;/p&gt;
+
+&lt;p&gt;This command creates two files &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.aws/credentials&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.aws/config&lt;/code&gt; if they do not exist, and updates their contents with the information provided. You can update or create these files by hand rather than using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws configure&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;awscli&lt;/code&gt; tool should now be configured to use the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;default&lt;/code&gt; profile which is associated with the new access keys.&lt;/p&gt;
+
+&lt;p&gt;Try running the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws sts get-caller-identity&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws sts get-caller-identity
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s2&quot;&gt;&quot;Account&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;xxxx&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;UserId&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;AIDA5IXRS7JVGTIATEOOB&quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&quot;Arn&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;arn:aws:iam::xxxx:user/test&quot;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This command simply returns the caller’s identity and you can see the “test” username present in the &lt;strong&gt;Arn&lt;/strong&gt; field.&lt;/p&gt;
+
+&lt;h2 id=&quot;getting-to-know-the-aws-cli&quot;&gt;Getting to know the AWS CLI&lt;/h2&gt;
+
+&lt;p&gt;The syntax for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;awscli&lt;/code&gt; commands looks like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws &amp;lt;command&amp;gt; &amp;lt;subcommand&amp;gt; &amp;lt;arguments&amp;gt;&lt;/code&gt;. The &lt;em&gt;command&lt;/em&gt; is usally the name of an AWS service like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;s3&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ec2&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;iam&lt;/code&gt;, etc. The &lt;em&gt;subcommand&lt;/em&gt; is usually an action associated with that service, for example &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ec2 start-instances&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;iam create-user&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;To get a list of available services you can run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws help&lt;/code&gt;. To get a list of available actions for a particular service you can run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws &amp;lt;command&amp;gt; help&lt;/code&gt;, e.g. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws ec2 help&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Let’s try creating an S3 Bucket from the command-line. S3 stands for &lt;em&gt;Simple Storage Service&lt;/em&gt;, and it is Amazon’s blob storage service for uploading and downloading arbitrary files. The command for creating a bucket is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws s3 mb&lt;/code&gt;. To know what arguments this command takes, we should run&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws s3 mb &lt;span class=&quot;nb&quot;&gt;help&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This returns a man-pages style document which tells us everything we need to know about the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws s3 mb&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;MB()                                                                      MB()
+
+
+
+NAME
+       mb -
+
+DESCRIPTION
+       Creates an S3 bucket.
+
+       See 'aws help' for descriptions of global parameters.
+
+SYNOPSIS
+            mb
+          &amp;lt;S3Uri&amp;gt;
+
+OPTIONS
+       path (string)
+
+       See 'aws help' for descriptions of global parameters.
+
+EXAMPLES
+       The  following  mb command creates a bucket.  In this example, the user
+       makes the bucket mybucket.  The bucket is created in the region  speci-
+       fied in the user's configuration file:
+
+          aws s3 mb s3://mybucket
+
+       Output:
+...skipping...
+OPTIONS
+       path (string)
+
+       See 'aws help' for descriptions of global parameters.
+
+EXAMPLES
+       The  following  mb command creates a bucket.  In this example, the user
+       makes the bucket mybucket.  The bucket is created in the region  speci-
+       fied in the user's configuration file:
+
+          aws s3 mb s3://mybucket
+
+       Output:
+
+          make_bucket: s3://mybucket
+
+       The  following mb command creates a bucket in a region specified by the
+       --region parameter.   In  this  example,  the  user  makes  the  bucket
+       mybucket in the region us-west-1:
+
+          aws s3 mb s3://mybucket --region us-west-1
+
+       Output:
+
+          make_bucket: s3://mybucket
+
+
+
+                                                                          MB()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;So looking at the examples, we can see that in order to create a bucket named “mybucket” we should run the command &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws s3 mb s3://mybucket&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws s3 mb s3://test-9187263
+make_bucket: test-9187263
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In this example we created an S3 bucket named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;test-9187263&lt;/code&gt;. Amazon requires S3 bucket names to be globally unique across all of AWS, similar to domain names on the internet. So if you tried to make a bucket named “mybucket” you probably ran into a &lt;strong&gt;BucketAlreadyExists&lt;/strong&gt; error.&lt;/p&gt;
+
+&lt;p&gt;We can delete the bucket using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws s3 rb&lt;/code&gt; command. This command accepts a single argument which, like the make-bucket command, is the S3Uri. If you weren’t sure about the syntax of the command you could have run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws s3 rb help&lt;/code&gt; to see usage documentation and examples.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ aws s3 rb s3://test-9187263
+remove_bucket: test-9187263
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;You created an &lt;strong&gt;IAM User&lt;/strong&gt; with programmatic access and attached the &lt;strong&gt;PowerUserAccess&lt;/strong&gt; policy to the new user. This gives the user permission to access most AWS services and perform most actions, and in general is not recommended for security purposes.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;You noted the &lt;em&gt;Access Key ID&lt;/em&gt; and &lt;em&gt;Secret access key&lt;/em&gt; for the new user and configured the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;awscli&lt;/code&gt; tool to use these access keys.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;You learned about the syntax of the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;awscli&lt;/code&gt; tool, and how to get more information about a specific &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;awscli&lt;/code&gt; command.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;You created an S3 bucket and deleted the same S3 bucket.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Adrian Teng-Amnuay</name><email>pumpadrian@gmail.com</email></author><category term="aws" /><category term="cli" /><summary type="html">In this tutorial you’ll install the AWS command line interface and learn how to set up an IAM user with programmatic access to AWS resources. This tutorial assumes you have basic command-line knowledge on either Mac or a unix-like operating system.</summary></entry><entry><title type="html">Continuous deployment with AWS lambda</title><link href="https://tech.adriant.io/aws/2018/07/01/continuous-deployment-with-aws-lambda/" rel="alternate" type="text/html" title="Continuous deployment with AWS lambda" /><published>2018-07-01T00:00:00+00:00</published><updated>2018-07-01T00:00:00+00:00</updated><id>https://tech.adriant.io/aws/2018/07/01/continuous-deployment-with-aws-lambda</id><content type="html" xml:base="https://tech.adriant.io/aws/2018/07/01/continuous-deployment-with-aws-lambda/">&lt;p&gt;AWS lambda and the serverless paradigm are great. Abstracting away machines, platforms and environments allows developers to focus on code, which is a magical thing. For code that runs infrequently, the cost savings can be significant, since lambda eliminates the need for a dedicated, always-on host.&lt;/p&gt;
+
+&lt;p&gt;But in spite of this, developing on lambda is not without its challenges. I’ve twice run into a situation where a project that runs fine on my Macbook fails to run on lambda. The first was due to a dependency on &lt;a href=&quot;https://pandas.pydata.org/&quot;&gt;Python Pandas&lt;/a&gt; and the second time was because of &lt;a href=&quot;https://pythonhosted.org/pyquery/&quot;&gt;PyQuery&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;According to this &lt;a href=&quot;https://stackoverflow.com/questions/36054976/pandas-aws-lambda&quot;&gt;Stackoverflow post&lt;/a&gt;, static libraries need to be compiled on an EC2 Amazon Linux machine in order to run on lambda, which is pretty inconvenient. It would be neat if lambda could automatically install dependencies via the &lt;strong&gt;package.json&lt;/strong&gt; file for Node or &lt;strong&gt;requirements.txt&lt;/strong&gt; for Python.&lt;/p&gt;
+
+&lt;p&gt;In any case, I ended up setting up my own CD pipeline to take care of this very task. Keep reading if you’d like to learn how to incorporate this into your own CI/CD pipeline.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h2 id=&quot;overview&quot;&gt;Overview&lt;/h2&gt;
+&lt;p&gt;Python seems to be the most popular language with AWS lambda, so for this tutorial we’re going to assume our lambda is written for Python 2.7.&lt;/p&gt;
+
+&lt;p&gt;We’ll start by setting up a git repository on AWS codecommit, and configuring codepipeline to trigger a build on codebuild whenever code is pushed to the repo. The build will be responsible for the following actions:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Download the source code&lt;/li&gt;
+  &lt;li&gt;Set up a virtual environment&lt;/li&gt;
+  &lt;li&gt;Install the requirements.txt&lt;/li&gt;
+  &lt;li&gt;Create a zip file containing all the code needed to run our lambda function&lt;/li&gt;
+  &lt;li&gt;Upload the zip file to Amazon S3 (optional)&lt;/li&gt;
+  &lt;li&gt;Publish the new lambda code&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;setup&quot;&gt;Setup&lt;/h2&gt;
+
+&lt;h3 id=&quot;create-the-codecommit-repository&quot;&gt;Create the codecommit repository&lt;/h3&gt;
+&lt;p&gt;Head over to Amazon codecommit and create a repository. You can skip configuring email notifications. Get the clone url from the console:
+&lt;a href=&quot;/assets/img/codecommit-clone-url.png&quot;&gt;&lt;img src=&quot;/assets/img/codecommit-clone-url.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;You may need to configure SSH access, click &lt;a href=&quot;https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-https-unixes.html?icmpid=docs_acc_console_connect#setting-up-https-unixes-account&quot;&gt;here&lt;/a&gt; for more details. Create a directory for our project and initialize the git repo.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;mkdir &lt;/span&gt;my-project
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;my-project
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git init
+Initialized empty Git repository &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; /Users/adrian.tengamnuay/Projects/personal-projects/my-project/.git/
+
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git remote add origin ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/my-sample-repo
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Create your first commit and push to master to verify that the repository has been set up correctly.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git commit &lt;span class=&quot;nt&quot;&gt;--allow-empty&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-m&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;My first commit&quot;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;master &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;root-commit&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; 27ccb3e] My first commit
+
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git push &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt; origin master
+Counting objects: 2, &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Writing objects: 100% &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;2/2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, 176 bytes | 176.00 KiB/s, &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Total 2 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;delta 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, reused 0 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;delta 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+To ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/my-sample-repo
+ &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;new branch]      master -&amp;gt; master
+Branch &lt;span class=&quot;s1&quot;&gt;'master'&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;up to track remote branch &lt;span class=&quot;s1&quot;&gt;'master'&lt;/span&gt; from &lt;span class=&quot;s1&quot;&gt;'origin'&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;define-the-codebuild-project&quot;&gt;Define the codebuild project&lt;/h3&gt;
+&lt;p&gt;Head over to CodeBuild in the AWS console. Create a codebuild project with your project name and set the source provider to &lt;strong&gt;AWS CodeCommit&lt;/strong&gt; and the Repository to your repository.
+&lt;a href=&quot;/assets/img/codebuild-configure-source.png&quot;&gt;&lt;img src=&quot;/assets/img/codebuild-configure-source.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Next configure the environment to use &lt;strong&gt;Ubuntu&lt;/strong&gt; OS, &lt;strong&gt;Python&lt;/strong&gt; runtime, version &lt;strong&gt;2.7.12&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Leave the build specification as &lt;strong&gt;buildspec.yml&lt;/strong&gt; in the root directory. This is the file that we will check in to source which tells codebuild how to build the project.
+&lt;a href=&quot;/assets/img/codebuild-configure-environment.png&quot;&gt;&lt;img src=&quot;/assets/img/codebuild-configure-environment.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;For artifacts, select &lt;strong&gt;No artifacts&lt;/strong&gt;. Leave the rest of the fields as is and save the project.&lt;/p&gt;
+
+&lt;h3 id=&quot;create-a-codepipeline-project-to-trigger-the-build-on-code-push&quot;&gt;Create a codepipeline project to trigger the build on code push&lt;/h3&gt;
+&lt;p&gt;On AWS CodePipeline create a new project. Configure source to use our codecommit repository and the &lt;strong&gt;master&lt;/strong&gt; branch.
+&lt;a href=&quot;/assets/img/codepipeline-configure-source.png&quot;&gt;&lt;img src=&quot;/assets/img/codepipeline-configure-source.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Next, configure the build.
+&lt;a href=&quot;/assets/img/codepipeline-configure-build.png&quot;&gt;&lt;img src=&quot;/assets/img/codepipeline-configure-build.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Select &lt;strong&gt;No deployment&lt;/strong&gt; for the deployment step.
+&lt;a href=&quot;/assets/img/codepipeline-configure-de.png&quot;&gt;&lt;img src=&quot;/assets/img/codepipeline-configure-de.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Create a service role for the pipeline project and save the pipeline.&lt;/p&gt;
+
+&lt;h3 id=&quot;test-out-the-pipeline&quot;&gt;Test out the pipeline&lt;/h3&gt;
+&lt;p&gt;To check whether our code pipeline is properly triggering a build whenever we push to our repository, I’m going to add a simple buildspec.yml file to our repository.&lt;/p&gt;
+
+&lt;p&gt;The following yaml file is a template that you can use to organize build stages for your project. For now I’m just going to do a simple &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;echo Hello from CodeBuild&lt;/code&gt; command and leave everything else commented out.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;buildspec.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0.2&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;#env:&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#variables:&lt;/span&gt;
+     &lt;span class=&quot;c1&quot;&gt;# key: &quot;value&quot;&lt;/span&gt;
+     &lt;span class=&quot;c1&quot;&gt;# key: &quot;value&quot;&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#parameter-store:&lt;/span&gt;
+     &lt;span class=&quot;c1&quot;&gt;# key: &quot;value&quot;&lt;/span&gt;
+     &lt;span class=&quot;c1&quot;&gt;# key: &quot;value&quot;&lt;/span&gt;
+
+&lt;span class=&quot;na&quot;&gt;phases&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#install:&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#commands:&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# - command&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# - command&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#pre_build:&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#commands:&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# - command&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# - command&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;echo Hello from CodeBuild&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# - command&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# - command&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#post_build:&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#commands:&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# - command&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# - command&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#artifacts:&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#files:&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;# - location&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;# - location&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#discard-paths: yes&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#base-directory: location&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#cache:&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;#paths:&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;# - paths&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Commit the file and push to master.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git add buildspec.yml
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git commit &lt;span class=&quot;nt&quot;&gt;-m&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Add a buildspec.yml file&quot;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;master dd4b5b1] Add a buildspec.yml file
+ 1 file changed, 37 insertions&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;+&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+ create mode 100644 buildspec.yml
+
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git push                                                                                           master
+Counting objects: 3, &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Delta compression using up to 8 threads.
+Compressing objects: 100% &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;2/2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Writing objects: 100% &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;3/3&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, 454 bytes | 454.00 KiB/s, &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Total 3 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;delta 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, reused 0 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;delta 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+To ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/my-sample-repo
+   27ccb3e..dd4b5b1  master -&amp;gt; master
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Head over to codepipeline to validate that the push event has been received.
+&lt;a href=&quot;/assets/img/codepipeline-codecommit-in-progress.png&quot;&gt;&lt;img src=&quot;/assets/img/codepipeline-codecommit-in-progress.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Once the &lt;strong&gt;Source&lt;/strong&gt; stage has completed, the status of the &lt;strong&gt;Build&lt;/strong&gt; stage should change to in progress.
+&lt;a href=&quot;/assets/img/codepipeline-codebuild-in-progress.png&quot;&gt;&lt;img src=&quot;/assets/img/codepipeline-codebuild-in-progress.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Click on the &lt;strong&gt;AWS CodeBuild&lt;/strong&gt; link to be redirected to the build history page. You should see the latest build for your project. Click on the build for more details. You should see a summary of the build phase outputs and a detailed log as well. Verify that the command &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;echo Hello from CodeBuild&lt;/code&gt; was successfully run.
+&lt;a href=&quot;/assets/img/codebuild-build-summary.png&quot;&gt;&lt;img src=&quot;/assets/img/codebuild-build-summary.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Now our builds will automatically kick off each time we push the code to the master branch, and we can easily control how we build our project simply by making changes to the buildspec.yml file.&lt;/p&gt;
+
+&lt;h3 id=&quot;update-the-codebuild-role-policies&quot;&gt;Update the CodeBuild role policies&lt;/h3&gt;
+&lt;p&gt;We need to update our build role with the proper IAM permissions in order for the build to upload code to lambda. Take note of the build role associated with your build project and head over to the IAM console.&lt;/p&gt;
+
+&lt;p&gt;For convenience, I’m going to attach the Amazon managed &lt;strong&gt;AWSLambdaFullAccess&lt;/strong&gt; policy to our build role. In general however, Amazon recommends you provide the least amount of access that is required by your resources.&lt;/p&gt;
+
+&lt;h3 id=&quot;create-an-s3-bucket-for-storing-lambda-code-optional&quot;&gt;Create an S3 bucket for storing lambda code (optional)&lt;/h3&gt;
+&lt;p&gt;The archive containing lambda code can either be uploaded directly to lambda or uploaded to S3 first and then referenced by lambda. The latter approach seems to be more reliable in my experience, but you can opt to skip this step and upload directly to lambda if you prefer.&lt;/p&gt;
+
+&lt;p&gt;To create an s3 bucket using the aws commandline&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws s3 mb s3://adrians-lambda-code-bucket
+make_bucket: adrians-lambda-code-bucket
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;create-an-empty-lambda-function&quot;&gt;Create an empty lambda function&lt;/h3&gt;
+&lt;p&gt;In order to update a lambda function we need to create one first.&lt;/p&gt;
+
+&lt;p&gt;Go to the lambda console and select &lt;strong&gt;Create function&lt;/strong&gt;. Choose &lt;strong&gt;Python 2.7&lt;/strong&gt; for the runtime and create a role from template, choosing &lt;em&gt;Simple Microservice Permissions&lt;/em&gt; as your policy template.
+&lt;a href=&quot;/assets/img/create-sample-lambda.png&quot;&gt;&lt;img src=&quot;/assets/img/create-sample-lambda.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Now we will be able to update this function from the command line.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-sample-python-project&quot;&gt;A sample Python project&lt;/h2&gt;
+&lt;p&gt;Let’s define a simple project that uses some external packages. I’m going to be importing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;python requests&lt;/code&gt; since it is a common and popular choice.&lt;/p&gt;
+
+&lt;p&gt;First we set up our local dev environment. For this you need &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtualenv&lt;/code&gt;, which you can install with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pip install virtualenv&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;virtualenv &lt;span class=&quot;nb&quot;&gt;env
+&lt;/span&gt;New python executable &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; /Users/adrian.tengamnuay/Projects/personal-projects/my-project/env/bin/python
+Installing setuptools, pip, wheel...done.
+
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;env&lt;/span&gt;/bin/activate
+&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Now any pip install commands we execute will be local to our project, and won’t clutter the user or global python site packages. Next, install &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;python requests&lt;/code&gt; (note that your output may differ from mine).&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;requests
+Collecting requests
+  Using cached https://files.pythonhosted.org/packages/65/47/7e02164a2a3db50ed6d8a6ab1d6d60b69c4c3fdf57a284257925dfc12bda/requests-2.19.1-py2.py3-none-any.whl
+Collecting certifi&amp;gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;2017.4.17 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;from requests&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  Using cached https://files.pythonhosted.org/packages/7c/e6/92ad559b7192d846975fc916b65f667c7b8c3a32bea7372340bfe9a15fa5/certifi-2018.4.16-py2.py3-none-any.whl
+Collecting chardet&amp;lt;3.1.0,&amp;gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;3.0.2 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;from requests&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  Using cached https://files.pythonhosted.org/packages/bc/a9/01ffebfb562e4274b6487b4bb1ddec7ca55ec7510b22e4c51f14098443b8/chardet-3.0.4-py2.py3-none-any.whl
+Collecting urllib3&amp;lt;1.24,&amp;gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1.21.1 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;from requests&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  Using cached https://files.pythonhosted.org/packages/bd/c9/6fdd990019071a4a32a5e7cb78a1d92c53851ef4f56f62a3486e6a7d8ffb/urllib3-1.23-py2.py3-none-any.whl
+Collecting idna&amp;lt;2.8,&amp;gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;2.5 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;from requests&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  Using cached https://files.pythonhosted.org/packages/4b/2a/0276479a4b3caeb8a8c1af2f8e4355746a97fab05a372e4a2c6a6b876165/idna-2.7-py2.py3-none-any.whl
+Installing collected packages: certifi, chardet, urllib3, idna, requests
+Successfully installed certifi-2018.4.16 chardet-3.0.4 idna-2.7 requests-2.19.1 urllib3-1.23
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We’re going to create a requirements.txt file with our requirements so that codebuild (or anyone else who wants to work on this project) can exactly replicate the development environment, without having to check in dependent packages into source.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip freeze &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; requirements.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;requirements.txt&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;certifi==2018.4.16
+chardet==3.0.4
+idna==2.7
+requests==2.19.1
+urllib3==1.23
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Important:&lt;/strong&gt; Make sure to update your requirements.txt file whenever you add or remove packages from your project.&lt;/p&gt;
+
+&lt;p&gt;Here’s a simple lambda handler which makes use of the requests library. I like to add the main function so I can test locally.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lambda_function.py&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;requests&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lambda_handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;event&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'https://google.com'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'__main__'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;lambda_handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Let’s also add a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.gitignore&lt;/code&gt; file to ignore the virtual environment folder, and any compiled python files.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.gitignore&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;env
+*.pyc
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The last thing for us to do is update our buildspec.yml file which will tell codebuild how to build our project and deploy it to lambda. Take a look and review the new build spec.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;buildspec.yml&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0.2&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;variables&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;LAMBDA_NAME&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;my-project-lambda&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;BUCKET_NAME&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;adrians-lambda-code-bucket&quot;&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;phases&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;install&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;apt-get update&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;apt-get install zip&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;pre_build&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;pip install virtualenv&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;virtualenv env&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;. env/bin/activate&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;pip install -r requirements.txt&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;commands&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ISO_DATE=$(date +%Y-%m-%dT%H:%M:%S%z)&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;TMP_DIR=&quot;dist-$ISO_DATE&quot;&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;mkdir $TMP_DIR&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;cp *.py $TMP_DIR&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;cp -rf env/lib/python2.7/site-packages/* $TMP_DIR&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;cd $TMP_DIR; zip -r ../dist.zip *&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;cd ..&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;aws s3 cp dist.zip s3://$BUCKET_NAME/$LAMBDA_NAME/dist.zip&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;aws lambda update-function-code --function-name $LAMBDA_NAME --s3-bucket $BUCKET_NAME --s3-key $LAMBDA_NAME/dist.zip --publish&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The build spec first installs the zip utility, and then installs the python packages to a virtual environment specified by requirements.txt.&lt;/p&gt;
+
+&lt;p&gt;During the build phase, a temporary folder named something like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;dist-2018-07-01T19:25:13-0700&lt;/code&gt; is created. The python files and installed packages are copied over to this folder. These files are then zipped into the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;dist.zip&lt;/code&gt; archive and the folder is removed.&lt;/p&gt;
+
+&lt;p&gt;Finally, the zip file containing our lambda code is uploaded to S3, and we update and publish our new lambda function by passing in the S3 location.&lt;/p&gt;
+
+&lt;p&gt;If you did not create an S3 bucket for storing your lambda code, you can upload the zip file directly to lambda by replacing the last two AWS commands with&lt;/p&gt;
+
+&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;aws lambda update-function-code --function-name $LAMBDA_NAME --zip-file fileb://dist.zip --publish&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now push the changes and cross your fingers…&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git add &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git commit &lt;span class=&quot;nt&quot;&gt;-m&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;A sample python lambda function&quot;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;master 3a9bc2d] A sample python lambda &lt;span class=&quot;k&quot;&gt;function
+ &lt;/span&gt;4 files changed, 40 insertions&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;+&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, 37 deletions&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;-&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+ create mode 100644 .gitignore
+ rewrite buildspec.yml &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;92%&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+ create mode 100644 lambda_function.py
+ create mode 100644 requirements.txt
+
+&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git push
+Counting objects: 6, &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Delta compression using up to 8 threads.
+Compressing objects: 100% &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;5/5&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Writing objects: 100% &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;6/6&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, 948 bytes | 948.00 KiB/s, &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Total 6 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;delta 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, reused 0 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;delta 0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+To ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/my-sample-repo
+   c8f5ea5..3a9bc2d  master -&amp;gt; master
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This will kick off the build which, if everything goes successfully, will automatically update and publish your new lambda code.&lt;/p&gt;
+
+&lt;p&gt;Test out your lambda function using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;invoke&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws lambda invoke &lt;span class=&quot;nt&quot;&gt;--function-name&lt;/span&gt; my-project-lambda response.txt
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;ExecutedVersion&quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$LATEST&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;,
+  &lt;span class=&quot;s2&quot;&gt;&quot;StatusCode&quot;&lt;/span&gt;: 200
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cat &lt;/span&gt;response.txt
+&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;!doctype html&amp;gt;&amp;lt;html itemscope=&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; itemtype=&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;http://schema.org/WebPage&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; lang=&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;en&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;gt;&amp;lt;head&amp;gt;&amp;lt;meta content=&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Search the world's information ...
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;So there you have it, a continuous deployment process for python projects running on AWS lambda. I’m currently using the same setup for one of my own personal projects, and it works great.&lt;/p&gt;
+
+&lt;p&gt;One thought I had was how can we incorporate cloudformation into this sort of continuous deploy pipeline.&lt;/p&gt;
+
+&lt;p&gt;Cloud formation manages AWS resources through a yaml file similar to the buildspec.yml used by CodeBuild, but where buildspec.yml has an &lt;em&gt;imperative&lt;/em&gt; structure, cloudformation templates have a &lt;em&gt;declarative&lt;/em&gt; one. This means that for buildspec.yml we list out each of steps that we want run, but in a cloudformation template, we simply list each resource and the state we’d like it to be in. AWS then executes whatever steps are necessary to get those resources to the requested states.&lt;/p&gt;
+
+&lt;p&gt;Something to look into next time. I hope you enjoyed this tutorial, please let me know what you think in the comments below.&lt;/p&gt;
+
+&lt;p&gt;Happy coding!&lt;/p&gt;</content><author><name>Adrian Teng-Amnuay</name><email>pumpadrian@gmail.com</email></author><category term="aws" /><category term="lambda" /><category term="python" /><category term="cd" /><category term="continuous" /><category term="deployment" /><summary type="html">AWS lambda and the serverless paradigm are great. Abstracting away machines, platforms and environments allows developers to focus on code, which is a magical thing. For code that runs infrequently, the cost savings can be significant, since lambda eliminates the need for a dedicated, always-on host. But in spite of this, developing on lambda is not without its challenges. I’ve twice run into a situation where a project that runs fine on my Macbook fails to run on lambda. The first was due to a dependency on Python Pandas and the second time was because of PyQuery. According to this Stackoverflow post, static libraries need to be compiled on an EC2 Amazon Linux machine in order to run on lambda, which is pretty inconvenient. It would be neat if lambda could automatically install dependencies via the package.json file for Node or requirements.txt for Python. In any case, I ended up setting up my own CD pipeline to take care of this very task. Keep reading if you’d like to learn how to incorporate this into your own CI/CD pipeline.</summary></entry><entry><title type="html">Hosting a static Jekyll website on Amazon S3</title><link href="https://tech.adriant.io/aws/2018/05/10/hosting-jekyll-site-on-s3/" rel="alternate" type="text/html" title="Hosting a static Jekyll website on Amazon S3" /><published>2018-05-10T00:00:00+00:00</published><updated>2018-05-10T00:00:00+00:00</updated><id>https://tech.adriant.io/aws/2018/05/10/hosting-jekyll-site-on-s3</id><content type="html" xml:base="https://tech.adriant.io/aws/2018/05/10/hosting-jekyll-site-on-s3/">&lt;p&gt;&lt;a href=&quot;https://jekyllrb.com/&quot;&gt;Jekyll&lt;/a&gt; is a great tool for building simple static websites and &lt;a href=&quot;https://aws.amazon.com/s3/&quot;&gt;Amazon S3&lt;/a&gt; makes it incredibly fast and easy to host your sites. I’m going to show you how to get up and running with your own personal site in record time.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h2 id=&quot;install-jekyll&quot;&gt;Install Jekyll&lt;/h2&gt;
+&lt;p&gt;To get started, we’ll install jekyll which requires the &lt;a href=&quot;https://www.ruby-lang.org/en/&quot;&gt;Ruby&lt;/a&gt; programming runtime.
+If you’re running Mac, the easiest way to install Ruby is with &lt;a href=&quot;https://brew.bash/&quot;&gt;homebrew&lt;/a&gt;. For Windows, you can download the &lt;a href=&quot;https://rubyinstaller.org/&quot;&gt;RubyInstaller&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;ruby
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;gem &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;bundler jekyll
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;create-the-website&quot;&gt;Create the website&lt;/h2&gt;
+&lt;p&gt;Once we have jekyll installed, we can create a new jekyll project using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jekyll new&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;jekyll new my-site
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;my-site
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;start-the-server&quot;&gt;Start the server&lt;/h2&gt;
+&lt;p&gt;Jekyll will have created some files for the new project. We can run the site locally with the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;jekyll serve
+Configuration file: /Users/adrian.tengamnuay/my-site/_config.yml
+            Source: /Users/adrian.tengamnuay/my-site
+       Destination: /Users/adrian.tengamnuay/my-site/_site
+ Incremental build: disabled. Enable with &lt;span class=&quot;nt&quot;&gt;--incremental&lt;/span&gt;
+      Generating...
+                    &lt;span class=&quot;k&quot;&gt;done in &lt;/span&gt;5.786 seconds.
+ Auto-regeneration: enabled &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'/Users/adrian.tengamnuay/my-site'&lt;/span&gt;
+    Server address: http://127.0.0.1:4000/
+  Server running... press ctrl-c to stop.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;With the server up and running, you can now view the site by visiting http://localhost:4000 in a browser. The generated site is stored under the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_site&lt;/code&gt; directory by default. We are ready to host our static site on Amazon S3.&lt;/p&gt;
+
+&lt;h2 id=&quot;setting-up-the-aws-command-line-tool&quot;&gt;Setting up the AWS command line tool&lt;/h2&gt;
+&lt;p&gt;For the rest of this guide we’re going to be working with the AWS command line interface. You can skip this section if you already have the CLI installed and configured.&lt;/p&gt;
+
+&lt;h3 id=&quot;install-aws-cli&quot;&gt;Install AWS CLI&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;awscli
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;configure-the-aws-cli&quot;&gt;Configure the AWS CLI&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws configure
+AWS Access Key ID &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;None]: YOUR-ACCESS-KEY
+AWS Secret Access Key &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;None]: YOUR-SECRET-KEY
+Default region name &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;None]: us-east-1
+Default output format &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;None]:
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;For more information on generating access keys for programmatic access, check the &lt;a href=&quot;https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html&quot;&gt;AWS documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;create-the-s3-bucket&quot;&gt;Create the S3 Bucket&lt;/h2&gt;
+&lt;p&gt;Note that if you have a particular domain that you would like to host your website at, then &lt;strong&gt;your bucket name must match the domain name&lt;/strong&gt;. For the rest of this guide, I will be using the &lt;strong&gt;tengamnuay.com&lt;/strong&gt; domain which I purchased through &lt;a href=&quot;https://aws.amazon.com/route53&quot;&gt;Amazon Route 53&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws s3 mb s3://tengamnuay.com
+make_bucket: tengamnuay.com
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;upload-site-contents&quot;&gt;Upload site contents&lt;/h2&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws s3 &lt;span class=&quot;nb&quot;&gt;sync &lt;/span&gt;_site s3://tengamnuay.com
+upload: _site/feed.xml to s3://tengamnuay.com/feed.xml
+upload: _site/404.html to s3://tengamnuay.com/404.html
+upload: _site/jekyll/update/2018/05/09/welcome-to-jekyll.html to s3://tengamnuay.com/jekyll/update/2018/05/09/welcome-to-jekyll.html
+upload: _site/assets/main.css to s3://tengamnuay.com/assets/main.css
+upload: _site/assets/minima-social-icons.svg to s3://tengamnuay.com/assets/minima-social-icons.svg
+upload: _site/index.html to s3://tengamnuay.com/index.html
+upload: _site/about/index.html to s3://tengamnuay.com/about/index.html
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;configure-the-bucket-for-static-website-hosting&quot;&gt;Configure the bucket for static website hosting&lt;/h2&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws s3 website s3://tengamnuay.com &lt;span class=&quot;nt&quot;&gt;--index-document&lt;/span&gt; index.html &lt;span class=&quot;nt&quot;&gt;--error-document&lt;/span&gt; 404.html
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This site is now being hosted by Amazon S3 at &lt;a href=&quot;http://tengamnuay.com.s3-website-us-east-1.amazonaws.com&quot;&gt;http://tengamnuay.com.s3-website-us-east-1.amazonaws.com&lt;/a&gt;. The general format of website URLs hosted on S3 is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;http://{bucket-name}.s3-website-{region}.amazonaws.com&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;update-bucket-policy&quot;&gt;Update bucket policy&lt;/h2&gt;
+&lt;p&gt;If we try to visit the URL for our S3 website, we get a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;403 Forbidden&lt;/code&gt; error.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/assets/img/403-forbidden.png&quot;&gt;&lt;img src=&quot;/assets/img/403-forbidden.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;In order to remedy this we need to update the policy on our bucket to allow public read access to anyone. Don’t forget to replace the bucket name with your own.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws s3api put-bucket-policy &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;--bucket&lt;/span&gt; tengamnuay.com &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;--policy&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+&lt;span class=&quot;s1&quot;&gt;'{
+  &quot;Version&quot;:&quot;2012-10-17&quot;,
+  &quot;Statement&quot;:[{
+        &quot;Sid&quot;:&quot;PublicReadGetObject&quot;,
+        &quot;Effect&quot;:&quot;Allow&quot;,
+          &quot;Principal&quot;: &quot;*&quot;,
+      &quot;Action&quot;:[&quot;s3:GetObject&quot;],
+      &quot;Resource&quot;:[&quot;arn:aws:s3:::tengamnuay.com/*&quot;]
+    }
+  ]
+}'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Refresh the page and you should see the website up and running.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/assets/img/site-up-and-running.png&quot;&gt;&lt;img src=&quot;/assets/img/site-up-and-running.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;how-to-deploy-updates&quot;&gt;How to deploy updates&lt;/h2&gt;
+&lt;p&gt;With our jekyll project and S3 bucket properly set up, it’s incredibly easy to deploy changes to our site. Let’s update the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_config.yml&lt;/code&gt; file with our own site title and description.&lt;/p&gt;
+
+&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;My Simple Jekyll Website&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;email&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;your-email@example.com&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;pi&quot;&gt;&amp;gt;-&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# this means to ignore newlines until &quot;baseurl:&quot;&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;This is a static website built with jekyll&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;which is hosted on Amazon S3.&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;It's easy, and awesome.&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now simply rebuild the site and re-upload to S3.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;jekyll build
+Configuration file: /Users/adrian.tengamnuay/my-site/_config.yml
+            Source: /Users/adrian.tengamnuay/my-site
+       Destination: /Users/adrian.tengamnuay/my-site/_site
+ Incremental build: disabled. Enable with &lt;span class=&quot;nt&quot;&gt;--incremental&lt;/span&gt;
+      Generating...
+                    &lt;span class=&quot;k&quot;&gt;done in &lt;/span&gt;0.506 seconds.
+ Auto-regeneration: disabled. Use &lt;span class=&quot;nt&quot;&gt;--watch&lt;/span&gt; to enable.
+
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;aws s3 &lt;span class=&quot;nb&quot;&gt;sync &lt;/span&gt;_site s3://tengamnuay.com
+upload: _site/404.html to s3://tengamnuay.com/404.html
+upload: _site/feed.xml to s3://tengamnuay.com/feed.xml
+upload: _site/about/index.html to s3://tengamnuay.com/about/index.html
+upload: _site/index.html to s3://tengamnuay.com/index.html
+upload: _site/assets/main.css to s3://tengamnuay.com/assets/main.css
+upload: _site/jekyll/update/2018/05/09/welcome-to-jekyll.html to s3://tengamnuay.com/jekyll/update/2018/05/09/welcome-to-jekyll.html
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Refresh the page and confirm the changes.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/assets/img/updated-site.png&quot;&gt;&lt;img src=&quot;/assets/img/updated-site.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;setting-up-your-domain&quot;&gt;Setting up your domain&lt;/h2&gt;
+&lt;p&gt;If you did not purchase your domain through &lt;a href=&quot;https://aws.amazon.com/route53&quot;&gt;Amazon Route 53&lt;/a&gt;, you will need to transfer your domain over to Route 53.&lt;/p&gt;
+
+&lt;p&gt;Log on to the &lt;a href=&quot;https://aws.amazon.com&quot;&gt;AWS console&lt;/a&gt; and navigate to the Route 53 service. Select your domain from the &lt;em&gt;Hosted zones&lt;/em&gt; tab to modify the DNS records. Create an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;A Record&lt;/code&gt; and select your S3 endpoint from the &lt;em&gt;Alias Target&lt;/em&gt; dropdown, then click Create.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/assets/img/route53-alias-s3-bucket.png&quot;&gt;&lt;img src=&quot;/assets/img/route53-alias-s3-bucket.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;It may take a few seconds, but you should now be able to visit your jekyll website from your domain.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/assets/img/site-using-domain.png&quot;&gt;&lt;img src=&quot;/assets/img/site-using-domain.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Happy blogging!&lt;/p&gt;</content><author><name>Adrian Teng-Amnuay</name><email>pumpadrian@gmail.com</email></author><category term="aws" /><category term="jekyll" /><category term="blog" /><category term="s3" /><category term="static" /><category term="website" /><summary type="html">Jekyll is a great tool for building simple static websites and Amazon S3 makes it incredibly fast and easy to host your sites. I’m going to show you how to get up and running with your own personal site in record time.</summary></entry></feed>

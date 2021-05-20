@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Hosting a static Jekyll website on Amazon S3 | technology</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Hosting a static Jekyll website on Amazon S3" />
+<meta name="author" content="Adrian Teng-Amnuay" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Jekyll is a great tool for building simple static websites and Amazon S3 makes it incredibly fast and easy to host your sites. I’m going to show you how to get up and running with your own personal site in record time." />
+<meta property="og:description" content="Jekyll is a great tool for building simple static websites and Amazon S3 makes it incredibly fast and easy to host your sites. I’m going to show you how to get up and running with your own personal site in record time." />
+<link rel="canonical" href="https://tech.adriant.io/aws/2018/05/10/hosting-jekyll-site-on-s3/" />
+<meta property="og:url" content="https://tech.adriant.io/aws/2018/05/10/hosting-jekyll-site-on-s3/" />
+<meta property="og:site_name" content="technology" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-05-10T00:00:00+00:00" />
+<script type="application/ld+json">
+{"description":"Jekyll is a great tool for building simple static websites and Amazon S3 makes it incredibly fast and easy to host your sites. I’m going to show you how to get up and running with your own personal site in record time.","url":"https://tech.adriant.io/aws/2018/05/10/hosting-jekyll-site-on-s3/","@type":"BlogPosting","headline":"Hosting a static Jekyll website on Amazon S3","dateModified":"2018-05-10T00:00:00+00:00","datePublished":"2018-05-10T00:00:00+00:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://tech.adriant.io/aws/2018/05/10/hosting-jekyll-site-on-s3/"},"author":{"@type":"Person","name":"Adrian Teng-Amnuay"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=59fc7cbc405ad69814cb8fc6e4c6ce3431b21a79">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://tech.adriant.io/">technology</a> <small>a software development blog with a focus on devops and cloud infrastructure</small></h1>
+      
+
+      <div class="post">
+  <h1 class="post-title">Hosting a static Jekyll website on Amazon S3</h1>
+  <span class="post-date">10 May 2018</span>
+  
+
+<div class="post-categories">
+  Categories:
+  
+    
+
+    <a class="badge badge-warning" href="https://tech.adriant.io/category/aws">aws</a>
+  
+</div>
+
+<div class="post-tags">
+  Tags:
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/jekyll">jekyll</a>
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/blog">blog</a>
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/s3">s3</a>
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/static">static</a>
+  
+    <a class="badge badge-dark" href="https://tech.adriant.io/tag/website">website</a>
+  
+</div>
+<br/>
+
+  <p><a href="https://jekyllrb.com/">Jekyll</a> is a great tool for building simple static websites and <a href="https://aws.amazon.com/s3/">Amazon S3</a> makes it incredibly fast and easy to host your sites. I’m going to show you how to get up and running with your own personal site in record time.</p>
+
+<a class="anchor" id="read-more"></a>
+
+<h2 id="install-jekyll">Install Jekyll</h2>
+<p>To get started, we’ll install jekyll which requires the <a href="https://www.ruby-lang.org/en/">Ruby</a> programming runtime.
+If you’re running Mac, the easiest way to install Ruby is with <a href="https://brew.bash/">homebrew</a>. For Windows, you can download the <a href="https://rubyinstaller.org/">RubyInstaller</a>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>brew <span class="nb">install </span>ruby
+<span class="nv">$ </span>gem <span class="nb">install </span>bundler jekyll
+</code></pre></div></div>
+
+<h2 id="create-the-website">Create the website</h2>
+<p>Once we have jekyll installed, we can create a new jekyll project using the <code class="language-plaintext highlighter-rouge">jekyll new</code> command.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>jekyll new my-site
+<span class="nv">$ </span><span class="nb">cd </span>my-site
+</code></pre></div></div>
+
+<h2 id="start-the-server">Start the server</h2>
+<p>Jekyll will have created some files for the new project. We can run the site locally with the <code class="language-plaintext highlighter-rouge">jekyll serve</code> command.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>jekyll serve
+Configuration file: /Users/adrian.tengamnuay/my-site/_config.yml
+            Source: /Users/adrian.tengamnuay/my-site
+       Destination: /Users/adrian.tengamnuay/my-site/_site
+ Incremental build: disabled. Enable with <span class="nt">--incremental</span>
+      Generating...
+                    <span class="k">done in </span>5.786 seconds.
+ Auto-regeneration: enabled <span class="k">for</span> <span class="s1">'/Users/adrian.tengamnuay/my-site'</span>
+    Server address: http://127.0.0.1:4000/
+  Server running... press ctrl-c to stop.
+</code></pre></div></div>
+
+<p>With the server up and running, you can now view the site by visiting http://localhost:4000 in a browser. The generated site is stored under the <code class="language-plaintext highlighter-rouge">_site</code> directory by default. We are ready to host our static site on Amazon S3.</p>
+
+<h2 id="setting-up-the-aws-command-line-tool">Setting up the AWS command line tool</h2>
+<p>For the rest of this guide we’re going to be working with the AWS command line interface. You can skip this section if you already have the CLI installed and configured.</p>
+
+<h3 id="install-aws-cli">Install AWS CLI</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>pip <span class="nb">install </span>awscli
+</code></pre></div></div>
+
+<h3 id="configure-the-aws-cli">Configure the AWS CLI</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws configure
+AWS Access Key ID <span class="o">[</span>None]: YOUR-ACCESS-KEY
+AWS Secret Access Key <span class="o">[</span>None]: YOUR-SECRET-KEY
+Default region name <span class="o">[</span>None]: us-east-1
+Default output format <span class="o">[</span>None]:
+</code></pre></div></div>
+
+<p>For more information on generating access keys for programmatic access, check the <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html">AWS documentation</a>.</p>
+
+<h2 id="create-the-s3-bucket">Create the S3 Bucket</h2>
+<p>Note that if you have a particular domain that you would like to host your website at, then <strong>your bucket name must match the domain name</strong>. For the rest of this guide, I will be using the <strong>tengamnuay.com</strong> domain which I purchased through <a href="https://aws.amazon.com/route53">Amazon Route 53</a>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws s3 mb s3://tengamnuay.com
+make_bucket: tengamnuay.com
+</code></pre></div></div>
+
+<h2 id="upload-site-contents">Upload site contents</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws s3 <span class="nb">sync </span>_site s3://tengamnuay.com
+upload: _site/feed.xml to s3://tengamnuay.com/feed.xml
+upload: _site/404.html to s3://tengamnuay.com/404.html
+upload: _site/jekyll/update/2018/05/09/welcome-to-jekyll.html to s3://tengamnuay.com/jekyll/update/2018/05/09/welcome-to-jekyll.html
+upload: _site/assets/main.css to s3://tengamnuay.com/assets/main.css
+upload: _site/assets/minima-social-icons.svg to s3://tengamnuay.com/assets/minima-social-icons.svg
+upload: _site/index.html to s3://tengamnuay.com/index.html
+upload: _site/about/index.html to s3://tengamnuay.com/about/index.html
+</code></pre></div></div>
+
+<h2 id="configure-the-bucket-for-static-website-hosting">Configure the bucket for static website hosting</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws s3 website s3://tengamnuay.com <span class="nt">--index-document</span> index.html <span class="nt">--error-document</span> 404.html
+</code></pre></div></div>
+
+<p>This site is now being hosted by Amazon S3 at <a href="http://tengamnuay.com.s3-website-us-east-1.amazonaws.com">http://tengamnuay.com.s3-website-us-east-1.amazonaws.com</a>. The general format of website URLs hosted on S3 is <code class="language-plaintext highlighter-rouge">http://{bucket-name}.s3-website-{region}.amazonaws.com</code>.</p>
+
+<h2 id="update-bucket-policy">Update bucket policy</h2>
+<p>If we try to visit the URL for our S3 website, we get a <code class="language-plaintext highlighter-rouge">403 Forbidden</code> error.</p>
+
+<p><a href="/assets/img/403-forbidden.png"><img src="/assets/img/403-forbidden.png" /></a></p>
+
+<p>In order to remedy this we need to update the policy on our bucket to allow public read access to anyone. Don’t forget to replace the bucket name with your own.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>aws s3api put-bucket-policy <span class="se">\</span>
+  <span class="nt">--bucket</span> tengamnuay.com <span class="se">\</span>
+  <span class="nt">--policy</span> <span class="se">\</span>
+<span class="s1">'{
+  "Version":"2012-10-17",
+  "Statement":[{
+        "Sid":"PublicReadGetObject",
+        "Effect":"Allow",
+          "Principal": "*",
+      "Action":["s3:GetObject"],
+      "Resource":["arn:aws:s3:::tengamnuay.com/*"]
+    }
+  ]
+}'</span>
+</code></pre></div></div>
+
+<p>Refresh the page and you should see the website up and running.</p>
+
+<p><a href="/assets/img/site-up-and-running.png"><img src="/assets/img/site-up-and-running.png" /></a></p>
+
+<h2 id="how-to-deploy-updates">How to deploy updates</h2>
+<p>With our jekyll project and S3 bucket properly set up, it’s incredibly easy to deploy changes to our site. Let’s update the <code class="language-plaintext highlighter-rouge">_config.yml</code> file with our own site title and description.</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">title</span><span class="pi">:</span> <span class="s">My Simple Jekyll Website</span>
+<span class="na">email</span><span class="pi">:</span> <span class="s">your-email@example.com</span>
+<span class="na">description</span><span class="pi">:</span> <span class="pi">&gt;-</span> <span class="c1"># this means to ignore newlines until "baseurl:"</span>
+  <span class="s">This is a static website built with jekyll</span>
+  <span class="s">which is hosted on Amazon S3.</span>
+  <span class="s">It's easy, and awesome.</span>
+</code></pre></div></div>
+
+<p>Now simply rebuild the site and re-upload to S3.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>jekyll build
+Configuration file: /Users/adrian.tengamnuay/my-site/_config.yml
+            Source: /Users/adrian.tengamnuay/my-site
+       Destination: /Users/adrian.tengamnuay/my-site/_site
+ Incremental build: disabled. Enable with <span class="nt">--incremental</span>
+      Generating...
+                    <span class="k">done in </span>0.506 seconds.
+ Auto-regeneration: disabled. Use <span class="nt">--watch</span> to enable.
+
+<span class="nv">$ </span>aws s3 <span class="nb">sync </span>_site s3://tengamnuay.com
+upload: _site/404.html to s3://tengamnuay.com/404.html
+upload: _site/feed.xml to s3://tengamnuay.com/feed.xml
+upload: _site/about/index.html to s3://tengamnuay.com/about/index.html
+upload: _site/index.html to s3://tengamnuay.com/index.html
+upload: _site/assets/main.css to s3://tengamnuay.com/assets/main.css
+upload: _site/jekyll/update/2018/05/09/welcome-to-jekyll.html to s3://tengamnuay.com/jekyll/update/2018/05/09/welcome-to-jekyll.html
+</code></pre></div></div>
+
+<p>Refresh the page and confirm the changes.</p>
+
+<p><a href="/assets/img/updated-site.png"><img src="/assets/img/updated-site.png" /></a></p>
+
+<h2 id="setting-up-your-domain">Setting up your domain</h2>
+<p>If you did not purchase your domain through <a href="https://aws.amazon.com/route53">Amazon Route 53</a>, you will need to transfer your domain over to Route 53.</p>
+
+<p>Log on to the <a href="https://aws.amazon.com">AWS console</a> and navigate to the Route 53 service. Select your domain from the <em>Hosted zones</em> tab to modify the DNS records. Create an <code class="language-plaintext highlighter-rouge">A Record</code> and select your S3 endpoint from the <em>Alias Target</em> dropdown, then click Create.</p>
+
+<p><a href="/assets/img/route53-alias-s3-bucket.png"><img src="/assets/img/route53-alias-s3-bucket.png" /></a></p>
+
+<p>It may take a few seconds, but you should now be able to visit your jekyll website from your domain.</p>
+
+<p><a href="/assets/img/site-using-domain.png"><img src="/assets/img/site-using-domain.png" /></a></p>
+
+<p>Happy blogging!</p>
+
+</div>
+
+<div class="related">
+
+<h2>Related Posts</h2>
+
+
+
+
+
+<ul class="related-posts">
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2019/10/20/getting-started-with-aws-lambda/">
+        Getting started with AWS Lambda Functions
+        <small>20 Oct 2019</small>
+      </a>
+    </li>
+    
+    
+  
+
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2019/10/10/getting-started-with-the-aws-cli/">
+        Getting started with the AWS Command-Line Interface
+        <small>10 Oct 2019</small>
+      </a>
+    </li>
+    
+    
+  
+
+
+
+  
+  
+
+  
+
+  
+    <li>
+      <a href="/aws/2018/07/01/continuous-deployment-with-aws-lambda/">
+        Continuous deployment with AWS lambda
+        <small>01 Jul 2018</small>
+      </a>
+    </li>
+    
+    
+      
+</ul>
+
+</div>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+this.page.url = "https://tech.adriant.io/aws/2018/05/10/hosting-jekyll-site-on-s3/";
+this.page.identifier = "/aws/2018/05/10/hosting-jekyll-site-on-s3/";
+};
+(function() {
+var d = document, s = d.createElement('script');
+s.src = "https://adriant-io.disqus.com/embed.js";
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        <p>Copyright &copy; 2021 Adrian Teng-Amnuay</p>
+      </div>
+
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+    
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-117405938-7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-117405938-7');
+</script>
+<!-- End Google Analytics -->
+
+      
+    
+  </body>
+</html>
+
+
+  
+
+
+
+
+
+
+
